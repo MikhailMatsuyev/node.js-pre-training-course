@@ -1,7 +1,7 @@
 interface Todo {
   id: number;
   title: string;
-  description: string;
+  description?: string;
   status: TodoStatus;
   readonly createdAt: Date;
 }
@@ -12,6 +12,6 @@ enum TodoStatus {
   COMPLETED = 'COMPLETED'
 }
 
-type NewTodo = Omit<Todo, 'id' | 'createdAt'>;
+export type NewTodo = Omit<Todo, 'id' | 'createdAt'  | 'status'>;
 
 export { Todo, TodoStatus };
