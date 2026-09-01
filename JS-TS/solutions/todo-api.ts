@@ -59,14 +59,4 @@ export class TodoApi {
   }
 }
 
-const api = new TodoApi();
-
-async function test(): Promise<void> {
-  await api.add({ title: 'Persist data on server' });
-  const todos = await api.getAll();
-
-  console.log(todos);
-}
-
-test();
 
