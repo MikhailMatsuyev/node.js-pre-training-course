@@ -9,7 +9,9 @@ export class TodoNotFoundError extends Error {
 }
 
 export class TodoApi {
-  private repo = new InMemoryRepository<Todo>();
+  constructor(
+    private readonly repo = new InMemoryRepository<Todo>()
+  ) {}
 
   private async delay(): Promise<void> {
     const ms = 300 + Math.floor(Math.random() * 301);
