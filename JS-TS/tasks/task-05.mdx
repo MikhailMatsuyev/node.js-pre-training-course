@@ -10,7 +10,9 @@ Add functions that operate on the entire todo collection and compute derived inf
 
 **Requirements:**
 1. In `solutions/todo-bulk.ts` implement:
-   - `toggleAll(state: Todo[], completed: boolean): Todo[]` – marks every item as completed / not completed.
+   - `toggleAll(state: Todo[], completed: boolean): Todo[]` – sets every item to
+     `TodoStatus.COMPLETED` when `completed` is `true`, otherwise to
+     `TodoStatus.PENDING`.
    - `clearCompleted(state: Todo[]): Todo[]` – removes completed todos.
    - `countByStatus(state: Todo[], status: TodoStatus): number`
 2. All functions must be pure.

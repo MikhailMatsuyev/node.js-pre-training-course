@@ -15,8 +15,14 @@ Create an asynchronous wrapper that pretends to call a remote REST API. You will
    - `update(id: number, update: Partial<Omit<Todo, 'id' | 'createdAt'>>): Promise<Todo>`  
    - `remove(id: number): Promise<void>`  
 2. Each method must simulate network latency of **300-600 ms** using `setTimeout`.
-3. Throw a `TodoNotFoundError` (create a custom `class` extending `Error`) when necessary.
+3. Create and export a custom error class `TodoNotFoundError` in
+   `solutions/todo-api.ts`. It must extend `Error`, carry the missing `id`, and
+   set `this.name = 'TodoNotFoundError'`. Throw it from `update(id, ...)` and
+   `remove(id)` when no todo with that `id` exists; `getAll()` and `add()` never
+   throw it.
 4. Use `async/await` syntax in your implementation.
+5. Reuse `createTodo` from Task 3 to build the entity — it owns the id counter.
+   Neither `TodoApi` nor the repository may generate ids.
 
 **Example:**
 ```ts

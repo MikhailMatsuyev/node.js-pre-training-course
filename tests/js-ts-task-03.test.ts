@@ -6,9 +6,15 @@ describe('Task 03: Todo Factory', () => {
     const a = createTodo({ title: 'A', description: '' });
     const b = createTodo({ title: 'B' });
     expect(a.id).toBe(1);
-    expect(b.id).toBe(2);
+    expect(b.id).toBe(a.id + 1);
     expect(a.status).toBe(TodoStatus.PENDING);
     expect(b.status).toBe(TodoStatus.PENDING);
     expect(a.createdAt instanceof Date).toBe(true);
+  });
+
+  it('should not mutate the input object', () => {
+    const input = { title: 'C', description: 'desc' };
+    createTodo(input);
+    expect(input).toEqual({ title: 'C', description: 'desc' });
   });
 });

@@ -40,4 +40,20 @@ describe('Task 02: Array Helpers', () => {
     expect(grouped.a.length).toBe(2);
     expect(grouped.b.length).toBe(1);
   });
+
+  it('all helpers should throw TypeError when source is null or undefined', () => {
+    expect(() => mapArray(null as unknown as number[], (n) => n)).toThrow(TypeError);
+    expect(() => filterArray(undefined as unknown as number[], (n) => n > 0)).toThrow(TypeError);
+    expect(() => reduceArray(null as unknown as number[], (a, n) => a + n, 0)).toThrow(TypeError);
+    expect(() => partition(undefined as unknown as number[], (n) => n > 0)).toThrow(TypeError);
+    expect(() => groupBy(null as unknown as number[], (n) => n)).toThrow(TypeError);
+  });
+
+  it('helpers should not mutate the original array', () => {
+    mapArray(nums, (n) => n * 2);
+    filterArray(nums, (n) => n % 2 === 0);
+    reduceArray(nums, (acc, n) => acc + n, 0);
+    partition(nums, (n) => n % 2 === 0);
+    expect(nums).toEqual([1, 2, 3, 4]);
+  });
 });

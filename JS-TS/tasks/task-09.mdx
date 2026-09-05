@@ -9,11 +9,14 @@ taskNumber: 9
 Ensure reliability by writing comprehensive unit tests for `TodoService` and the repository.
 
 **Requirements:**
-1. Add Jest to the project (use `ts-jest` for TypeScript support).
-2. Create `tests/todo-service.spec.ts` and cover at minimum:
+1. Jest and `ts-jest` are already configured — study `jest.config.js` before you
+   start. Note that no ready-made test file exists for this task: unlike tasks
+   1-8 and 10, you write the tests yourself.
+2. Create `tests/js-ts-task-09.test.ts` and cover at minimum:
    - successful creation of a todo  
    - toggling status  
    - search returns matching items  
-   - error is thrown when updating non-existing id
+   - error is thrown when `setStatus` is called with a non-existing id
 3. Mock the network latency (`setTimeout`) to keep tests fast.
-4. Achieve at least **90 %** line coverage for service and repository files.
+4. Achieve at least **90 %** line coverage for `todo-service.ts` and
+   `repository.ts`: `npx jest --coverage --testPathPatterns=js-ts-task-09`.

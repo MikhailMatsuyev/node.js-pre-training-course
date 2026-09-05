@@ -10,8 +10,7 @@
     "test": "jest",
     "test:all": "jest",
     "test:docker-git": "jest tests/docker-git.test.js",
-    "test:db-nosql": "jest tests/db-nosql.test.js",
-    "test:js-ts-all": "jest --testPathPatterns=js-ts-task",
+    "test:js-ts": "jest --testPathPatterns=js-ts-task",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
@@ -20,8 +19,10 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.0",
     "jest": "^30.0.4",
-    "ts-jest": "^29.1.0"
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "express": "^5.1.0"

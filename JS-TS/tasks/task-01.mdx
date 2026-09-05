@@ -13,11 +13,14 @@ Lay the foundation of the application by declaring the essential TypeScript type
 2. Create an `interface` `Todo` with properties  
    - `id` (number) – unique identifier  
    - `title` (string) – short title  
-   - `description` (string) – optional detailed text  
+   - `description?` (string) – optional detailed text; mark it optional with `?`
    - `status` (`TodoStatus`) – current status  
    - `createdAt` (Date) – creation timestamp (readonly)  
-3. Create a type alias `NewTodo` that omits `id` and `createdAt` from `Todo`.
+3. Create a type alias `NewTodo` that omits `id`, `createdAt` **and** `status`
+   from `Todo`.
 4. Export the types in `types.ts` (create the file if it does not exist).
+
+This module is type-checked with `strict: true`.
 
 **Example:**
 ```ts
