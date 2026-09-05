@@ -1,6 +1,6 @@
 import React from 'react';
 import { TodoItemProps } from '../../types';
-import './StyledToDoItem.css';
+import styles from './CompletedTodo.module.css';
 
 /**
  * Task 7: StyledToDoItem Component
@@ -37,9 +37,9 @@ import './StyledToDoItem.css';
  * 
  * Conditional Styling Patterns:
  * 
- * 1. Conditional Classes:
- *    - className={`todo-item ${isCompleted ? 'completed' : ''}`}
- *    - className={isCompleted ? 'todo-item completed' : 'todo-item'}
+ * 1. Conditional Classes (CSS Modules):
+ *    - className={`${styles.todoItem} ${isCompleted ? styles.completed : ''}`}
+ *    - className={isCompleted ? `${styles.todoItem} ${styles.completed}` : styles.todoItem}
  * 
  * 2. Conditional Inline Styles:
  *    - style={{ textDecoration: isCompleted ? 'line-through' : 'none' }}
@@ -64,11 +64,11 @@ export const StyledToDoItem: React.FC<TodoItemProps> = ({ todo }) => {
   // 5. Handle different completion states gracefully
   // 
   // Example implementation:
-  // const itemClass = `todo-item ${todo.completed ? 'completed' : ''}`;
-  // 
-  // CSS classes to create:
-  // .todo-item { /* base styles */ }
-  // .todo-item.completed { /* completed styles */ }
+  // const itemClass = `${styles.todoItem} ${todo.completed ? styles.completed : ''}`;
+  //
+  // CSS module classes available (see ./CompletedTodo.module.css):
+  // styles.todoItem { /* base styles */ }
+  // styles.completed { /* completed styles */ }
 
   return (
     <div>

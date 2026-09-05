@@ -23,5 +23,5 @@ Create a component `ToDoItem` that accepts a todo object as a prop and displays 
 
 **Theoretical Questions:**
 1. How do you destructure props in React functional components?
-2. What is the difference between controlled and uncontrolled components?
+2. How do you pass and type props for a component using TypeScript interfaces?
 3. How can you conditionally render content in React components? 
