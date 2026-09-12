@@ -1,4 +1,6 @@
-const EventEmitter = require("events");
+const EventEmitter = require("events")
+const fs = require("fs").promises;
+const path = require("path");
 
 /**
  * Custom Event Emitter for a messaging system
@@ -9,8 +11,19 @@ class MessageSystem extends EventEmitter {
     super();
     // Initialize the messaging system
     this.messages = [];
+    this.messageTimestamps = [];
     this.users = new Set();
     this.messageId = 1;
+
+    this.historyFile = path.join(__dirname, "messages.json");
+
+    this.saveQueue = Promise.resolve();
+  }
+
+  async saveHistory() {
+    const data = JSON.stringify(this.messages, null, 2);
+
+    await fs.writeFile(this.historyFile, data, "utf-8");
   }
 
   /**
@@ -26,7 +39,35 @@ class MessageSystem extends EventEmitter {
    * @param {string} sender - Optional sender name
    * @returns {object} Created message object
    */
-  sendMessage(type, content, sender = "System") {}
+  sendMessage(type, content, sender = "System") {
+    if (sender !== "System") {
+      this.checkRateLimit();
+    }
+
+    const message = {
+      id: String(this.messageId++),
+      type,
+      content,
+      timestamp: new Date(),
+      sender,
+    };
+
+    this.messages.push(message);
+
+    if (this.messages.length > 100) {
+      this.messages.shift();
+    }
+
+    this.emit("message", message);
+    this.emit(type, message);
+
+    // The queue for messages
+    this.saveQueue = this.saveQueue
+        .then(() => this.saveHistory())
+        .catch(console.error);
+
+    return message;
+  }
 
   /**
    * Subscribe to all message types
@@ -35,7 +76,9 @@ class MessageSystem extends EventEmitter {
    *
    * @param {function} callback - Callback function to handle messages
    */
-  subscribeToMessages(callback) {}
+  subscribeToMessages(callback) {
+    this.on("message", callback);
+  }
 
   /**
    * Subscribe to specific message type
@@ -45,7 +88,10 @@ class MessageSystem extends EventEmitter {
    * @param {string} type - Message type to subscribe to
    * @param {function} callback - Callback function to handle messages
    */
-  subscribeToType(type, callback) {}
+
+  subscribeToType(type, callback) {
+    this.on(type, callback);
+  }
 
   /**
    * Get current number of active users
@@ -54,7 +100,9 @@ class MessageSystem extends EventEmitter {
    *
    * @returns {number} Number of active users
    */
-  getUserCount() {}
+  getUserCount() {
+    return this.users.size;
+  }
 
   /**
    * Get the last N messages (default 10)
@@ -64,7 +112,17 @@ class MessageSystem extends EventEmitter {
    * @param {number} count - Number of messages to retrieve
    * @returns {array} Array of recent messages
    */
-  getMessageHistory(count = 10) {}
+  getMessageHistory(count = 10) {
+    return this.messages.slice(-count);
+  }
+
+  searchMessages(query) {
+    const normalizedQuery = query.toLowerCase();
+
+    return this.messages.filter((message) =>
+        message.content.toLowerCase().includes(normalizedQuery)
+    );
+  }
 
   /**
    * Add a user to the system
@@ -74,7 +132,15 @@ class MessageSystem extends EventEmitter {
    *
    * @param {string} username - Username to add
    */
-  addUser(username) {}
+  addUser(username) {
+    if (!this.users.has(username)) {
+      this.users.add(username);
+
+      this.emit("user-joined", {
+        content: `User ${username} joined`,
+      });
+    }
+  }
 
   /**
    * Remove a user from the system
@@ -84,7 +150,15 @@ class MessageSystem extends EventEmitter {
    *
    * @param {string} username - Username to remove
    */
-  removeUser(username) {}
+  removeUser(username) {
+    if (this.users.has(username)) {
+      this.users.delete(username);
+
+      this.emit("user-left", {
+        content: `User ${username} left`,
+      });
+    }
+  }
 
   /**
    * Get all active users
@@ -93,7 +167,9 @@ class MessageSystem extends EventEmitter {
    *
    * @returns {array} Array of usernames
    */
-  getActiveUsers() {}
+  getActiveUsers() {
+    return Array.from(this.users);
+  }
 
   /**
    * Clear all messages
@@ -101,7 +177,25 @@ class MessageSystem extends EventEmitter {
    * Clear messages array
    * Emit history-cleared event
    */
-  clearHistory() {}
+  clearHistory() {
+    this.messages = [];
+  }
+
+  checkRateLimit() {
+    const now = Date.now();
+    const limit = 5;
+    const window = 10 * 1000;
+
+    this.messageTimestamps = this.messageTimestamps.filter(
+        (timestamp) => now - timestamp < window
+    );
+
+    if (this.messageTimestamps.length >= limit) {
+      throw new Error("Rate limit exceeded");
+    }
+
+    this.messageTimestamps.push(now);
+  }
 
   /**
    * Get system statistics
@@ -110,14 +204,58 @@ class MessageSystem extends EventEmitter {
    *
    * @returns {object} System stats
    */
-  getStats() {}
+  getStats() {
+    const messagesByType = {};
+
+    for (const message of this.messages) {
+      messagesByType[message.type] =
+          (messagesByType[message.type] || 0) + 1;
+    }
+
+    return {
+      totalMessages: this.messages.length,
+      activeUsers: this.users.size,
+      messagesByType,
+    };
+  }
+
+  // Cause we cant do: async constructor() {}
+  async init() {
+    await this.loadHistory();
+  }
+
+  async loadHistory() {
+    try {
+      const data = await fs.readFile(this.historyFile, "utf-8");
+      // console.log("JSON DATA:", data);
+
+
+      const messages = JSON.parse(data);
+
+      this.messages = messages.slice(-100).map((message) => ({
+        ...message,
+        timestamp: new Date(message.timestamp),
+      }));
+
+      if (this.messages.length > 0) {
+        const lastId = Number(this.messages[this.messages.length - 1].id);
+        this.messageId = lastId + 1;
+      }
+    } catch (error) {
+      if (error.code === "ENOENT") {
+        this.messages = [];
+      } else {
+        throw error;
+      }
+    }
+  }
 }
 
 // Export the MessageSystem class
 module.exports = MessageSystem;
 
 // Example usage (for testing):
-const isReadyToTest = false;
+const isReadyToTest = true;
 
 if (isReadyToTest) {
   const messenger = new MessageSystem();
@@ -157,4 +295,41 @@ if (isReadyToTest) {
   console.log(`\nActive users: ${messenger.getUserCount()}`);
   console.log("Recent messages:", messenger.getMessageHistory()?.length);
   console.log("System stats:", messenger.getStats());
+
+  // =========================
+  // Bonus features
+  // =========================
+
+  // Bonus 1: Message persistence
+  // Save history to messages.json
+  messenger.saveQueue.then(() => {
+    console.log("Message history saved");
+  });
+
+  // Bonus 2: Message search
+  console.log(
+      "Search results:",
+      messenger.searchMessages("server")
+  );
+
+  // Bonus 3: Rate limiting
+  try {
+    for (let i = 1; i <= 5; i++) {
+      messenger.sendMessage(
+          "message",
+          `Rate limit test ${i}`,
+          "Alice"
+      );
+    }
+
+    console.log("Rate limit: first 5 messages passed");
+
+    messenger.sendMessage(
+        "message",
+        "Rate limit test 6",
+        "Alice"
+    );
+  } catch (error) {
+    console.log("Rate limit: 6th message blocked");
+  }
 }
