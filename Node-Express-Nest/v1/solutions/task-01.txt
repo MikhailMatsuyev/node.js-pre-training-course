@@ -1,0 +1,104 @@
+Task 01 — Custom Event Emitter
+
+ In this task, a custom MessageSystem was implemented using the built-in Node.js EventEmitter.
+
+ Implemented:
+
+ sending messages of different types: message, notification, alert;
+ subscribing to all messages;
+ subscribing to a specific message type;
+ support for multiple listeners;
+ message history;
+ clearing message history;
+ getting system statistics;
+ adding and removing users;
+ getting the list of active users;
+ user-joined and user-left events.
+
+ Additionally, the following bonus features were implemented:
+
+ saving message history to a JSON file;
+ searching messages;
+ rate limiting for user messages.
+
+ The bonus features are also checked by running the demo in task-01.js.
+
+ Implementation file:
+ task-01.js
+
+================>>>>>> Run the solution:
+
+ node task-01.js
+
+================>>>>>> Run the tests:
+
+ node task-01-test.js
+
+ All main tests pass successfully.
+===========================================
+
+================>>>>>>>After running test you will see in console:
+
+... \v1\solutions\node> node task-01-test.js
+
+� User Alice joined
+� User Bob joined
+[MESSAGE] Hello everyone!
+[NOTIFICATION] System maintenance in 1 hour
+[ALERT] Server overload detected!
+� ALERT: Server overload detected!
+� User Bob left
+
+Active users: 1
+Recent messages: 3
+System stats: {
+  totalMessages: 3,
+  activeUsers: 1,
+  messagesByType: { message: 1, notification: 1, alert: 1 }
+}
+Search results: [
+  {
+    id: '3',
+    type: 'alert',
+    content: 'Server overload detected!',
+    timestamp: 2026-09-12T09:18:29.174Z,
+    sender: 'System'
+  }
+]
+[MESSAGE] Rate limit test 1
+[MESSAGE] Rate limit test 2
+[MESSAGE] Rate limit test 3
+[MESSAGE] Rate limit test 4
+Rate limit: 6th message blocked
+� MessageSystem Test Suite
+============================
+
+� Starting MessageSystem Tests...
+
+� Running: sendMessage - basic functionality
+✅ Passed: sendMessage - basic functionality
+� Running: subscribeToType - specific event subscription
+✅ Passed: subscribeToType - specific event subscription
+� Running: addUser - user management
+✅ Passed: addUser - user management
+� Running: removeUser - user removal
+✅ Passed: removeUser - user removal
+� Running: getMessageHistory - message retrieval
+✅ Passed: getMessageHistory - message retrieval
+� Running: getStats - statistics generation
+✅ Passed: getStats - statistics generation
+� Running: Message persistence - 100 message limit
+✅ Passed: Message persistence - 100 message limit
+� Running: Multiple listeners - event broadcasting
+✅ Passed: Multiple listeners - event broadcasting
+
+� Test Results:
+==================
+✅ Passed: 8
+❌ Failed: 0
+� Success Rate: 100%
+
+� All tests passed!
+
+� Great job! Your MessageSystem implementation is working correctly!
+

@@ -59,7 +59,9 @@ class MessageSystem extends EventEmitter {
     }
 
     this.emit("message", message);
-    this.emit(type, message);
+    if (type !== "message") {
+      this.emit(type, message);
+    }
 
     // The queue for messages
     this.saveQueue = this.saveQueue
