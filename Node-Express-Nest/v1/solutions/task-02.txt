@@ -1,0 +1,46 @@
+# Task 02 — File Stream Transformer
+
+## Description
+
+This task implements a CSV file transformation pipeline using Node.js streams.
+
+The solution contains 3 custom Transform streams:
+
+* `CSVParser` — converts CSV lines into JavaScript objects.
+* `DataTransformer` — applies data transformations to each record.
+* `CSVWriter` — converts transformed objects back to CSV format.
+
+The following helper functions are implemented:
+
+* `capitalizeName()` — capitalizes names.
+* `normalizeEmail()` — converts emails to lowercase and validates the format.
+* `formatPhone()` — formats valid phone numbers as `(XXX) XXX-XXXX`.
+* `standardizeDate()` — converts supported date formats to `YYYY-MM-DD`.
+
+The main `processCSVFile()` function connects all streams using `pipeline()`.
+
+## Files
+
+* `task-02.js` — main implementation.
+* `data/users.csv` — sample input CSV file.
+* `data/users_transformed.csv` — transformed output CSV file.
+
+## How to Run
+
+Run the test suite from the `solutions/node` directory:
+
+```bash
+node task-02-test.js
+```
+
+The test suite checks the helper functions, streams, full CSV processing, error handling, and sample data creation.
+
+## Test Result
+
+All tests passed successfully:
+
+* Passed: 10
+* Failed: 0
+* Success Rate: 100%
+
+Bonus features were not implemented.
