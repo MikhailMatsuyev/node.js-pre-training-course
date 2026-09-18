@@ -1,0 +1,27 @@
+Task 04: Mini HTTP Server for ToDos
+
+Implemented a RESTful Todo API using Node.js built-in http and url modules with in-memory storage.
+
+Implemented:
+
+HTTP server and manual request routing
+JSON request body parsing
+Path and query parameter parsing
+Full CRUD operations for todos
+Todo data validation
+Filtering by completion status
+HTTP status codes and JSON responses
+CORS headers and error handling
+
+Run the tests:
+
+node task-04-test.js
+
+Run the server manually:
+
+node task-04.js
+
+Implementation files:
+
+task-04.js
+task-04-test.js
