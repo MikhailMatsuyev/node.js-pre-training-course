@@ -19,12 +19,35 @@ function analyzeEventLoop() {
   // 4. Return analysis object with explanations
 
   const analysis = {
-    phases: [],
-    executionOrder: [],
-    explanations: [],
+    phases: [
+      "timers",
+      "pending callbacks",
+      "idle, prepare",
+      "poll",
+      "check",
+      "close callbacks",
+    ],
+
+    executionOrder: [
+      "timers",
+      "pending callbacks",
+      "idle, prepare",
+      "poll",
+      "check",
+      "close callbacks",
+    ],
+
+    explanations: [
+      "Timers phase handles setTimeout and setInterval callbacks.",
+      "Pending callbacks phase handles some deferred I/O callbacks.",
+      "Idle, prepare phase is used internally by Node.js.",
+      "Poll phase retrieves and processes I/O events.",
+      "Check phase handles setImmediate callbacks.",
+      "Close callbacks phase handles close events such as socket close callbacks.",
+      "Microtasks are processed before the next macrotask.",
+    ],
   };
 
-  console.log("Event loop analysis not implemented yet");
   return analysis;
 }
 
@@ -39,13 +62,29 @@ function predictExecutionOrder(snippet) {
   // 2. Apply event loop phase rules
   // 3. Consider microtask priority
   // 4. Return predicted order with explanations
-
   const predictions = {
     snippet1: [
-      // Basic event loop snippet predictions
+      '1. "Start" - synchronous code',
+      '2. "End" - synchronous code',
+      '3. "Next Tick 1" - process.nextTick microtask',
+      '4. "Next Tick 2" - process.nextTick microtask',
+      '5. "Promise 1" - Promise microtask',
+      '6. "Promise 2" - Promise microtask',
+      '7. "Timer 1" / "Timer 2" - timers phase',
+      '8. "Immediate 1" / "Immediate 2" - check phase',
     ],
+
     snippet2: [
-      // File system operations snippet predictions
+      '1. "=== Start ===" - synchronous code',
+      '2. "=== End ===" - synchronous code',
+      '3. "NextTick" - process.nextTick microtask',
+      '4. "Nested NextTick" - nested process.nextTick microtask',
+      '5. "Timer" - timers phase',
+      '6. "NextTick in Timer" - process.nextTick after timer callback',
+      '7. "Immediate" - check phase',
+      '8. "NextTick in Immediate" - process.nextTick after immediate callback',
+      '9. "fs.readFile" - poll phase / I/O callback',
+      '10. "NextTick in readFile" - process.nextTick after I/O callback',
     ],
   };
 
@@ -67,9 +106,18 @@ async function fixRaceCondition() {
   const files = ["file1.txt", "file2.txt", "file3.txt"];
 
   try {
-    // Implementation goes here
-    console.log("Race condition fix not implemented yet");
-    return [];
+    const results = [];
+
+    for (const file of files) {
+      const content = await fsPromises.readFile(file, "utf8");
+
+      results.push({
+        file,
+        content,
+      });
+    }
+
+    return results;
   } catch (error) {
     throw new Error(`Failed to process files: ${error.message}`);
   }
@@ -90,13 +138,49 @@ async function fixCallbackHell(userId) {
   // 5. Blocking operations
 
   try {
-    // Step 1: Read user file
-    // Step 2: Read user preferences
-    // Step 3: Read user activity
-    // Step 4: Combine data and write result
+    const userFile = `user-${userId}.json`;
+    const preferencesFile = `preferences-${userId}.json`;
+    const activityFile = `activity-${userId}.json`;
 
-    console.log("Callback hell fix not implemented yet");
-    return null;
+    const files = [userFile, preferencesFile, activityFile];
+
+    for (const file of files) {
+      if (!fs.existsSync(file)) {
+        throw new Error(`File not found: ${file}`);
+      }
+    }
+
+    const [userData, preferencesData, activityData] = await Promise.all([
+      fsPromises.readFile(userFile, "utf8"),
+      fsPromises.readFile(preferencesFile, "utf8"),
+      fsPromises.readFile(activityFile, "utf8"),
+    ]);
+
+    let user;
+    let preferences;
+    let activity;
+
+    try {
+      user = JSON.parse(userData);
+      preferences = JSON.parse(preferencesData);
+      activity = JSON.parse(activityData);
+    } catch (error) {
+      throw new Error(`Invalid JSON data: ${error.message}`);
+    }
+
+    const result = {
+      user,
+      preferences,
+      activity,
+    };
+
+    await fsPromises.writeFile(
+        `processed-user-${userId}.json`,
+        JSON.stringify(result, null, 2),
+        "utf8"
+    );
+
+    return result;
   } catch (error) {
     throw new Error(`Failed to process user data: ${error.message}`);
   }
@@ -115,8 +199,25 @@ async function fixMixedAsync() {
   // 4. No proper async/await usage
 
   try {
-    // Implementation goes here
-    console.log("Mixed async fix not implemented yet");
+    console.log("Processing async data...");
+
+    const inputFile = require("path").join(__dirname, "test-data", "input.txt");
+    const outputFile = require("path").join(
+        __dirname,
+        "test-data",
+        "processed-input.txt"
+    );
+
+    const data = await fsPromises.readFile(inputFile, "utf8");
+
+    const processedData = data.toUpperCase();
+
+    await fsPromises.writeFile(outputFile, processedData, "utf8");
+
+    console.log("Processing completed");
+    console.log("Result:", processedData);
+
+    return processedData;
   } catch (error) {
     throw new Error(`Failed to process data: ${error.message}`);
   }
@@ -135,7 +236,50 @@ async function demonstrateEventLoop() {
   // 5. Show close callbacks phase
   // 6. Demonstrate microtask priority (nextTick, Promises)
 
-  console.log("Event loop demonstration not implemented yet");
+  console.log("=== Event Loop Demonstration ===");
+
+  console.log("Synchronous code");
+
+  process.nextTick(() => {
+    logWithPhase("process.nextTick callback", "microtask");
+  });
+
+  Promise.resolve().then(() => {
+    logWithPhase("Promise.then callback", "microtask");
+  });
+
+  setTimeout(() => {
+    logWithPhase("setTimeout callback", "timers");
+  }, 0);
+
+  const interval = setInterval(() => {
+    logWithPhase("setInterval callback", "timers");
+    clearInterval(interval);
+  }, 0);
+
+  fs.readFile(__filename, "utf8", () => {
+    logWithPhase("fs.readFile callback", "poll");
+  });
+
+  setImmediate(() => {
+    logWithPhase("setImmediate callback", "check");
+  });
+
+  const server = require("net").createServer();
+
+  server.listen(0, () => {
+    logWithPhase("Server listening callback", "poll");
+
+    server.close(() => {
+      logWithPhase("Server close callback", "close callbacks");
+    });
+  });
+
+  await new Promise((resolve) => {
+    setTimeout(resolve, 50);
+  });
+
+  console.log("=== Event Loop Demonstration Finished ===");
 }
 
 /**
@@ -170,8 +314,16 @@ async function createTestFiles() {
   };
 
   try {
-    // Implementation goes here
-    console.log("Test files creation not implemented yet");
+    for (const [fileName, data] of Object.entries(testData)) {
+      const content =
+          typeof data === "object"
+              ? JSON.stringify(data, null, 2)
+              : data;
+
+      await fsPromises.writeFile(fileName, content, "utf8");
+    }
+
+    console.log("Test files created successfully");
   } catch (error) {
     console.error("Failed to create test files:", error.message);
   }
@@ -189,7 +341,24 @@ function logWithPhase(message, phase = "unknown") {
   // 3. Add color coding for different phases
   // 4. Format output for better readability
 
-  console.log(`[${phase}] ${message}`);
+  const timestamp = new Date().toISOString();
+
+  const colors = {
+    timers: "\x1b[33m",
+    "pending callbacks": "\x1b[35m",
+    "idle, prepare": "\x1b[36m",
+    poll: "\x1b[32m",
+    check: "\x1b[34m",
+    "close callbacks": "\x1b[31m",
+    unknown: "\x1b[37m",
+  };
+
+  const reset = "\x1b[0m";
+  const color = colors[phase.toLowerCase()] || colors.unknown;
+
+  console.log(
+      `${color}[${timestamp}] [Phase: ${phase}] ${message}${reset}`
+  );
 }
 
 // Export functions and data
@@ -205,7 +374,7 @@ module.exports = {
 };
 
 // Example usage (for testing):
-const isReadyToTest = false;
+const isReadyToTest = true;
 
 if (isReadyToTest) {
   async function runExamples() {
@@ -239,5 +408,7 @@ if (isReadyToTest) {
     }
   }
 
-  runExamples();
+  if (require.main === module) {
+    runExamples();
+  }
 }

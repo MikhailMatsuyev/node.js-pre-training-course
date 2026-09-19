@@ -1,0 +1,25 @@
+Task 03
+
+Implemented:
+
+Analysis of all 6 Node.js event loop phases.
+Microtask and macrotask execution order analysis.
+Execution order predictions for provided async snippets.
+Fixed race conditions in file processing.
+Converted callback hell to async/await.
+Fixed mixed Promise and callback usage.
+Added an event loop demonstration with timers, I/O, setImmediate, process.nextTick, and Promises.
+Added test file creation and enhanced phase logging.
+
+
+How to Run
+
+Run the strict tests:
+
+..solutions\node> node task-03-test.js
+
+Run the example demonstration directly from task-03.js when enabled.
+
+Implementation File
+
+solutions/node/task-03.js

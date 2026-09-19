@@ -23,9 +23,26 @@ function parseBody(req) {
   return new Promise((resolve, reject) => {
     let body = "";
 
-    // Implementation goes here
-    console.log("Body parsing not implemented yet");
-    resolve({});
+    req.on("data", (chunk) => {
+      body += chunk;
+    });
+
+    req.on("end", () => {
+      if (!body) {
+        resolve({});
+        return;
+      }
+
+      try {
+        resolve(JSON.parse(body));
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    req.on("error", (error) => {
+      reject(error);
+    });
   });
 }
 
@@ -45,8 +62,16 @@ function parsePathParams(pattern, path) {
 
   const params = {};
 
-  // Implementation goes here
-  console.log("Path params parsing not implemented yet");
+  const patternParts = pattern.split("/");
+  const pathParts = path.split("/");
+
+  patternParts.forEach((part, index) => {
+    if (part.startsWith(":")) {
+      const paramName = part.slice(1);
+      params[paramName] = pathParts[index];
+    }
+  });
+
   return params;
 }
 
@@ -70,8 +95,17 @@ function sendResponse(res, statusCode, data) {
   // - Access-Control-Allow-Methods: GET, POST, PUT, DELETE
   // - Access-Control-Allow-Headers: Content-Type
 
-  console.log("Response sending not implemented yet");
-  res.end();
+  res.statusCode = statusCode;
+
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  res.end(JSON.stringify(data));
 }
 
 /**
@@ -88,8 +122,6 @@ function validateTodo(todoData, isUpdate = false) {
   // 4. Return validation result with errors array
   // 5. Handle update vs create validation differences
 
-  const errors = [];
-
   // Title validation
   // - Required for create, optional for update
   // - Must be string
@@ -105,8 +137,40 @@ function validateTodo(todoData, isUpdate = false) {
   // - Optional field
   // - Must be boolean if provided
 
-  console.log("Todo validation not implemented yet");
-  return { isValid: true, errors };
+  const errors = [];
+
+  // Title validation
+  if (!isUpdate || todoData.title !== undefined) {
+    if (typeof todoData.title !== "string") {
+      errors.push("Title must be a string");
+    } else if (todoData.title.trim().length === 0) {
+      errors.push("Title cannot be only whitespace");
+    } else if (todoData.title.length > 100) {
+      errors.push("Title must be 1-100 characters");
+    }
+  }
+
+  // Description validation
+  if (todoData.description !== undefined) {
+    if (typeof todoData.description !== "string") {
+      errors.push("Description must be a string");
+    } else if (todoData.description.length > 500) {
+      errors.push("Description must be max 500 characters");
+    }
+  }
+
+  // Completed validation
+  if (
+      todoData.completed !== undefined &&
+      typeof todoData.completed !== "boolean"
+  ) {
+    errors.push("Completed must be a boolean");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
 }
 
 /**
@@ -138,10 +202,27 @@ class TodoServer {
     // 3. Set proper id sequence for new todos
 
     const sampleTodos = [
-      // Add sample todos here
+      {
+        id: this.generateNextId(),
+        title: "Learn Node.js",
+        description: "Study Node.js built-in HTTP module",
+        completed: false,
+      },
+      {
+        id: this.generateNextId(),
+        title: "Build REST API",
+        description: "Implement Todo REST API with CRUD operations",
+        completed: false,
+      },
     ];
 
-    console.log("Sample data initialization not implemented yet");
+    const now = new Date().toISOString();
+
+    this.todos = sampleTodos.map((todo) => ({
+      ...todo,
+      createdAt: now,
+      updatedAt: now,
+    }));
   }
 
   /**
@@ -154,7 +235,17 @@ class TodoServer {
     // 3. Log server startup message
     // 4. Handle server errors
 
-    console.log("Server start not implemented yet");
+    const server = http.createServer((req, res) => {
+      this.handleRequest(req, res);
+    });
+
+    server.on("error", (error) => {
+      console.error("Server error:", error);
+    });
+
+    server.listen(this.port, () => {
+      console.log(`Todo server is running on port ${this.port}`);
+    });
   }
 
   /**
@@ -174,29 +265,31 @@ class TodoServer {
       const parsedUrl = url.parse(req.url, true);
       const { pathname, query } = parsedUrl;
       const method = req.method;
-
-      console.log(
-        `${method} ${pathname} - Request handling not implemented yet`
-      );
-
-      // Route to appropriate handler based on method and path
-      // GET /todos -> getAllTodos
-      // GET /todos/:id -> getTodoById
-      // POST /todos -> createTodo
-      // PUT /todos/:id -> updateTodo
-      // DELETE /todos/:id -> deleteTodo
-      // OPTIONS -> handleCORS
-
-      sendResponse(res, 501, {
-        success: false,
-        error: "Request handling not implemented yet",
-      });
-    } catch (error) {
-      console.error("Request handling error:", error);
-      sendResponse(res, 500, {
-        success: false,
-        error: "Internal server error",
-      });
+      console.log(`${method} ${pathname}`);
+      if (method === "GET" && pathname === "/todos") {
+        await this.getAllTodos(req, res, query); return;
+      }
+      if (method === "GET" && pathname.startsWith("/todos/")) {
+        const params = parsePathParams("/todos/:id", pathname);
+        await this.getTodoById(req, res, params); return;
+      } if (method === "POST" && pathname === "/todos") {
+        await this.createTodo(req, res); return;
+      } if (method === "PUT" && pathname.startsWith("/todos/")) {
+        const params = parsePathParams("/todos/:id", pathname);
+        await this.updateTodo(req, res, params); return;
+      } if (method === "DELETE" && pathname.startsWith("/todos/")) {
+        const params = parsePathParams("/todos/:id", pathname);
+        await this.deleteTodo(req, res, params); return;
+      } if (method === "OPTIONS") { this.handleCORS(req, res);
+        return;
+      } if (pathname.startsWith("/todos")) {
+        sendResponse(res, 405, { success: false, error: "Method not allowed", });
+        return;
+      } sendResponse(res, 404, { success: false, error: "Not found", });
+    } catch (error) { console.error("Request handling error:", error);
+      if (error instanceof SyntaxError) { sendResponse(res, 400, { success: false, error: "Invalid JSON", });
+        return;
+      } sendResponse(res, 500, { success: false, error: "Internal server error", });
     }
   }
 
@@ -213,10 +306,29 @@ class TodoServer {
     // 3. Return success response with data and count
     // 4. Handle query parameter validation
 
-    console.log("Get all todos not implemented yet");
-    sendResponse(res, 501, {
-      success: false,
-      error: "Get all todos not implemented yet",
+    // 1. Get all todos from storage
+    let todos = this.todos;
+
+    // 2. Apply completed filter if provided in query
+    if (query.completed !== undefined) {
+      // 3. Handle query parameter validation
+      if (query.completed !== "true" && query.completed !== "false") {
+        sendResponse(res, 400, {
+          success: false,
+          error: "Invalid completed query parameter",
+        });
+        return;
+      }
+
+      const completed = query.completed === "true";
+      todos = this.todos.filter((todo) => todo.completed === completed);
+    }
+
+    // 4. Return success response with data and count
+    sendResponse(res, 200, {
+      success: true,
+      data: todos,
+      count: todos.length,
     });
   }
 
@@ -234,10 +346,36 @@ class TodoServer {
     // 4. Return success response with todo data
     // 5. Handle invalid ID format
 
-    console.log("Get todo by ID not implemented yet");
-    sendResponse(res, 501, {
-      success: false,
-      error: "Get todo by ID not implemented yet",
+    // 1. Extract ID from path parameters
+    const id = params.id;
+
+    // 5. Handle invalid ID format
+    const numId = parseInt(id, 10);
+
+    if (isNaN(numId)) {
+      sendResponse(res, 400, {
+        success: false,
+        error: "Invalid ID format",
+      });
+      return;
+    }
+
+    // 2. Find todo in storage
+    const todo = this.findTodoById(numId);
+
+    // 3. Return 404 if not found
+    if (!todo) {
+      sendResponse(res, 404, {
+        success: false,
+        error: "Todo not found",
+      });
+      return;
+    }
+
+    // 4. Return success response with todo data
+    sendResponse(res, 200, {
+      success: true,
+      data: todo,
     });
   }
 
@@ -249,16 +387,47 @@ class TodoServer {
   async createTodo(req, res) {
     // TODO: Implement create new todo
     // 1. Parse request body
-    // 2. Validate todo data
-    // 3. Create new todo with generated ID and timestamps
-    // 4. Add to storage
-    // 5. Return 201 with created todo
-    // 6. Handle validation errors
+    const todoData = await parseBody(req);
 
-    console.log("Create todo not implemented yet");
-    sendResponse(res, 501, {
-      success: false,
-      error: "Create todo not implemented yet",
+    // 2. Validate todo data
+    if (!todoData || typeof todoData !== "object" || Array.isArray(todoData)) {
+      sendResponse(res, 400, {
+        success: false,
+        error: "Invalid todo data",
+      });
+      return;
+    }
+
+    const validation = validateTodo(todoData);
+
+    // 6. Handle validation errors
+    if (!validation.isValid) {
+      sendResponse(res, 400, {
+        success: false,
+        error: validation.errors.join(", "),
+      });
+      return;
+    }
+
+    // 3. Create new todo with generated ID and timestamps
+    const now = new Date().toISOString();
+
+    const todo = {
+      id: this.generateNextId(),
+      title: todoData.title,
+      description: todoData.description,
+      completed: todoData.completed ?? false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    // 4. Add to storage
+    this.todos.push(todo);
+
+    // 5. Return 201 with created todo
+    sendResponse(res, 201, {
+      success: true,
+      data: todo,
     });
   }
 
@@ -279,10 +448,45 @@ class TodoServer {
     // 7. Return updated todo
     // 8. Handle not found and validation errors
 
-    console.log("Update todo not implemented yet");
-    sendResponse(res, 501, {
-      success: false,
-      error: "Update todo not implemented yet",
+    // 1. Extract ID from path parameters
+    const id = params.id;
+
+    // 2. Find existing todo
+    const todo = this.findTodoById(id);
+
+    // 8. Handle not found and validation errors
+    if (!todo) {
+      sendResponse(res, 404, {
+        success: false,
+        error: "Todo not found",
+      });
+      return;
+    }
+
+    // 3. Parse request body
+    const todoData = await parseBody(req);
+
+    // 4. Validate update data
+    const validation = validateTodo(todoData, true);
+
+    if (!validation.isValid) {
+      sendResponse(res, 400, {
+        success: false,
+        error: validation.errors.join(", "),
+      });
+      return;
+    }
+
+    // 5. Merge changes with existing todo
+    Object.assign(todo, todoData);
+
+    // 6. Update timestamp
+    todo.updatedAt = new Date().toISOString();
+
+    // 7. Return updated todo
+    sendResponse(res, 200, {
+      success: true,
+      data: todo,
     });
   }
 
@@ -293,18 +497,39 @@ class TodoServer {
    * @param {Object} params - Path parameters
    */
   async deleteTodo(req, res, params) {
-    // TODO: Implement delete todo
     // 1. Extract ID from path parameters
-    // 2. Find todo index in storage
-    // 3. Return 404 if not found
-    // 4. Remove from storage
-    // 5. Return success message
-    // 6. Handle invalid ID format
+    const id = params.id;
 
-    console.log("Delete todo not implemented yet");
-    sendResponse(res, 501, {
-      success: false,
-      error: "Delete todo not implemented yet",
+    // 6. Handle invalid ID format
+    const numId = parseInt(id, 10);
+
+    if (isNaN(numId)) {
+      sendResponse(res, 400, {
+        success: false,
+        error: "Invalid ID format",
+      });
+      return;
+    }
+
+    // 2. Find todo index in storage
+    const index = this.findTodoIndexById(numId);
+
+    // 3. Return 404 if not found
+    if (index === -1) {
+      sendResponse(res, 404, {
+        success: false,
+        error: "Todo not found",
+      });
+      return;
+    }
+
+    // 4. Remove from storage
+    this.todos.splice(index, 1);
+
+    // 5. Return success message
+    sendResponse(res, 200, {
+      success: true,
+      message: "Todo deleted successfully",
     });
   }
 
@@ -336,7 +561,12 @@ class TodoServer {
     // 4. Handle invalid ID format
 
     const numId = parseInt(id, 10);
-    return null; // Placeholder
+
+    if (isNaN(numId)) {
+      return null;
+    }
+
+    return this.todos.find((todo) => todo.id === numId) || null;
   }
 
   /**
@@ -351,7 +581,12 @@ class TodoServer {
     // 3. Return index or -1 if not found
 
     const numId = parseInt(id, 10);
-    return -1; // Placeholder
+
+    if (isNaN(numId)) {
+      return -1;
+    }
+
+    return this.todos.findIndex((todo) => todo.id === numId);
   }
 
   /**
@@ -372,7 +607,7 @@ class TodoServer {
 module.exports = TodoServer;
 
 // Example usage (for testing):
-const isReadyToTest = false;
+const isReadyToTest = true;
 
 if (isReadyToTest) {
   // Start server for testing
