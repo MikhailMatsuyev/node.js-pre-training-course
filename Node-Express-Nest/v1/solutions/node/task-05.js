@@ -63,27 +63,44 @@ class AnalyticsTracker {
     };
   }
   _bumpDaily(field) {
-    // TODO: implement daily stats tracking
     // - use YYYY-MM-DD date keys
     // - track created, updated, deleted, views per day
-  }
+
+    const date = new Date().toISOString().slice(0, 10);
+
+    if (!this.stats.dailyStats[date]) {
+      this.stats.dailyStats[date] = {
+        created: 0,
+        updated: 0,
+        deleted: 0,
+        views: 0,
+      };
+    }
+
+    this.stats.dailyStats[date][field]++;
+    }
+
   trackCreated() {
-    // TODO: implement tracking logic
+    this.stats.totalCreated++;
+    this._bumpDaily("created");
   }
   trackUpdated() {
-    // TODO: implement tracking logic
+    this.stats.totalUpdated++;
+    this._bumpDaily("updated");
   }
   trackDeleted() {
-    // TODO: implement tracking logic
+    this.stats.totalDeleted++;
+    this._bumpDaily("deleted");
   }
   trackViewed() {
-    // TODO: implement tracking logic
+    this.stats.totalViews++;
+    this._bumpDaily("views");
   }
   trackError() {
-    // TODO: implement tracking logic
+    this.stats.errors++;
   }
   getStats() {
-    // TODO: implement stats retrieval
+    return this.stats;
   }
 }
 
@@ -141,6 +158,39 @@ function validateTodoPayload(payload, isCreate = false) {
   // - description: optional, string
   // - completed: optional, boolean (default false)
 
+  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+    errors.push("Payload must be an object");
+    return { errors, values: out };
+  }
+
+  if (isCreate && (!("title" in payload) || typeof payload.title !== "string" || !payload.title.trim())) {
+    errors.push("Title is required and must be a non-empty string");
+  } else if ("title" in payload) {
+    if (typeof payload.title !== "string" || !payload.title.trim()) {
+      errors.push("Title must be a non-empty string");
+    } else {
+      out.title = payload.title.trim();
+    }
+  }
+
+  if ("description" in payload) {
+    if (typeof payload.description !== "string") {
+      errors.push("Description must be a string");
+    } else {
+      out.description = payload.description;
+    }
+  }
+
+  if ("completed" in payload) {
+    if (typeof payload.completed !== "boolean") {
+      errors.push("Completed must be a boolean");
+    } else {
+      out.completed = payload.completed;
+    }
+  } else if (isCreate) {
+    out.completed = false;
+  }
+
   return { errors, values: out };
 }
 
@@ -151,9 +201,10 @@ class TodoServer extends EventEmitter {
     this.todos = [];
     this.nextId = 1;
 
-    // TODO: initialize analytics tracker
-    // TODO: initialize logger
-    // TODO: initialize recent events list keeping last 100 events
+    this.analytics = new AnalyticsTracker();
+    this.logger = new ConsoleLogger();
+    this.recentEvents = [];
+
     this.server = null;
 
     this._wireDefaultListeners();
@@ -199,29 +250,386 @@ class TodoServer extends EventEmitter {
    * Start the server
    */
   async start() {
-    // TODO: create HTTP server and bind request handler
-    // TODO: listen on this.port
+    this.server = http.createServer((req, res) => {
+      this._handleRequest(req, res).catch((error) => {
+        const requestInfo = {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers["user-agent"] || "",
+          ip: req.socket.remoteAddress || "",
+        };
+
+        this.emit("serverError", {
+          error,
+          operation: "request",
+          requestInfo,
+          timestamp: nowISO(),
+        });
+
+        sendJson(res, 500, {
+          success: false,
+          error: "Internal server error",
+        });
+      });
+    });
+
+    await new Promise((resolve, reject) => {
+      this.server.once("error", reject);
+      this.server.listen(this.port, resolve);
+    });
   }
 
   /**
    * Stop the server
    */
   async stop() {
-    // TODO: stop the HTTP server if running
+    if (!this.server) {
+      return;
+    }
+
+    await new Promise((resolve, reject) => {
+      this.server.close((error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    this.server = null;
   }
 
   /**
    * Handle incoming requests
    */
   async _handleRequest(req, res) {
-    // TODO: implement CORS preflight handling
-    // TODO: implement routes:
-    // - /todos (GET, POST)
-    // - /todos/:id (GET, PUT, DELETE)
-    // - /analytics (GET)
-    // - /events (GET)
-    // TODO: emit events for CRUD, errors, validation, etc.
-    // TODO: send JSON responses with proper status codes
+    // CORS preflight
+    if (req.method === "OPTIONS") {
+      res.writeHead(204, {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      });
+      return res.end();
+    }
+
+    const parsedUrl = url.parse(req.url, true);
+    const pathname = parsedUrl.pathname;
+
+    // GET /todos
+    if (req.method === "GET" && pathname === "/todos") {
+      let todos = [...this.todos];
+
+      if (parsedUrl.query.completed !== undefined) {
+        const completed = parsedUrl.query.completed === "true";
+        todos = todos.filter((todo) => todo.completed === completed);
+      }
+
+      this.emit("todosListed", {
+        todos,
+        count: todos.length,
+        filters: parsedUrl.query,
+        timestamp: nowISO(),
+        requestInfo: {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers["user-agent"] || "",
+          ip: req.socket.remoteAddress || "",
+        },
+      });
+
+      return sendJson(res, 200, {
+        success: true,
+        data: todos,
+        count: todos.length,
+      });
+    }
+
+    // POST /todos
+    if (req.method === "POST" && pathname === "/todos") {
+      let payload;
+
+      try {
+        payload = await parseBody(req);
+      } catch (error) {
+        const requestInfo = {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers["user-agent"] || "",
+          ip: req.socket.remoteAddress || "",
+        };
+
+        this.emit("validationError", {
+          errors: [error.message],
+          data: null,
+          requestInfo,
+          timestamp: nowISO(),
+        });
+
+        return sendJson(res, 400, {
+          success: false,
+          errors: [error.message],
+        });
+      }
+
+      const validation = validateTodoPayload(payload, true);
+
+      if (validation.errors.length > 0) {
+        const requestInfo = {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers["user-agent"] || "",
+          ip: req.socket.remoteAddress || "",
+        };
+
+        this.emit("validationError", {
+          errors: validation.errors,
+          data: payload,
+          requestInfo,
+          timestamp: nowISO(),
+        });
+
+        return sendJson(res, 400, {
+          success: false,
+          errors: validation.errors,
+        });
+      }
+
+      const todo = {
+        id: this.nextId++,
+        ...validation.values,
+      };
+
+      this.todos.push(todo);
+
+      this.emit("todoCreated", {
+        todo,
+        timestamp: nowISO(),
+        requestInfo: {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers["user-agent"] || "",
+          ip: req.socket.remoteAddress || "",
+        },
+      });
+
+      return sendJson(res, 201, {
+        success: true,
+        data: todo,
+      });
+    }
+
+    const id = parseIdFromPath(pathname);
+
+    // GET /todos/:id
+    if (req.method === "GET" && id !== null) {
+      const todo = this.todos.find((item) => item.id === id);
+
+      if (!todo) {
+        this.emit("todoNotFound", {
+          todoId: id,
+          operation: "view",
+          timestamp: nowISO(),
+          requestInfo: {
+            method: req.method,
+            url: req.url,
+            userAgent: req.headers["user-agent"] || "",
+            ip: req.socket.remoteAddress || "",
+          },
+        });
+
+        return sendJson(res, 404, {
+          success: false,
+          error: "Todo not found",
+        });
+      }
+
+      this.emit("todoViewed", {
+        todo,
+        timestamp: nowISO(),
+        requestInfo: {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers["user-agent"] || "",
+          ip: req.socket.remoteAddress || "",
+        },
+      });
+
+      return sendJson(res, 200, {
+        success: true,
+        data: todo,
+      });
+    }
+
+    // PUT /todos/:id
+    if (req.method === "PUT" && id !== null) {
+      const todo = this.todos.find((item) => item.id === id);
+
+      if (!todo) {
+        this.emit("todoNotFound", {
+          todoId: id,
+          operation: "update",
+          timestamp: nowISO(),
+          requestInfo: {
+            method: req.method,
+            url: req.url,
+            userAgent: req.headers["user-agent"] || "",
+            ip: req.socket.remoteAddress || "",
+          },
+        });
+
+        return sendJson(res, 404, {
+          success: false,
+          error: "Todo not found",
+        });
+      }
+
+      let payload;
+
+      try {
+        payload = await parseBody(req);
+      } catch (error) {
+        const requestInfo = {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers["user-agent"] || "",
+          ip: req.socket.remoteAddress || "",
+        };
+
+        this.emit("validationError", {
+          errors: [error.message],
+          data: null,
+          requestInfo,
+          timestamp: nowISO(),
+        });
+
+        return sendJson(res, 400, {
+          success: false,
+          errors: [error.message],
+        });
+      }
+
+      const validation = validateTodoPayload(payload, false);
+
+      if (validation.errors.length > 0) {
+        const requestInfo = {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers["user-agent"] || "",
+          ip: req.socket.remoteAddress || "",
+        };
+
+        this.emit("validationError", {
+          errors: validation.errors,
+          data: payload,
+          requestInfo,
+          timestamp: nowISO(),
+        });
+
+        return sendJson(res, 400, {
+          success: false,
+          errors: validation.errors,
+        });
+      }
+
+      const oldTodo = { ...todo };
+      const changes = Object.keys(validation.values);
+
+      Object.assign(todo, validation.values);
+
+      this.emit("todoUpdated", {
+        oldTodo,
+        newTodo: { ...todo },
+        changes,
+        timestamp: nowISO(),
+        requestInfo: {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers["user-agent"] || "",
+          ip: req.socket.remoteAddress || "",
+        },
+      });
+
+      return sendJson(res, 200, {
+        success: true,
+        data: todo,
+      });
+    }
+
+    // DELETE /todos/:id
+    if (req.method === "DELETE" && id !== null) {
+      const index = this.todos.findIndex((item) => item.id === id);
+
+      if (index === -1) {
+        this.emit("todoNotFound", {
+          todoId: id,
+          operation: "delete",
+          timestamp: nowISO(),
+          requestInfo: {
+            method: req.method,
+            url: req.url,
+            userAgent: req.headers["user-agent"] || "",
+            ip: req.socket.remoteAddress || "",
+          },
+        });
+
+        return sendJson(res, 404, {
+          success: false,
+          error: "Todo not found",
+        });
+      }
+
+      const [todo] = this.todos.splice(index, 1);
+
+      this.emit("todoDeleted", {
+        todo,
+        timestamp: nowISO(),
+        requestInfo: {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers["user-agent"] || "",
+          ip: req.socket.remoteAddress || "",
+        },
+      });
+
+      return sendJson(res, 200, {
+        success: true,
+        data: todo,
+      });
+    }
+
+    // GET /analytics
+    if (req.method === "GET" && pathname === "/analytics") {
+      return sendJson(res, 200, {
+        success: true,
+        data: this.analytics.getStats(),
+      });
+    }
+
+    // GET /events
+    if (req.method === "GET" && pathname === "/events") {
+      const last = parsedUrl.query.last
+          ? Number(parsedUrl.query.last)
+          : 10;
+
+      const limit = Number.isInteger(last) && last >= 0
+          ? Math.min(last, 100)
+          : 10;
+
+      const events = this.recentEvents.slice(-limit);
+
+      return sendJson(res, 200, {
+        success: true,
+        data: events,
+      });
+    }
+
+    // Route not found
+    return sendJson(res, 404, {
+      success: false,
+      error: "Route not found",
+    });
   }
 }
 

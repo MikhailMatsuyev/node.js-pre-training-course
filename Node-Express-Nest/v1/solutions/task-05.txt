@@ -1,0 +1,25 @@
+Task 05: Event-Driven Todo Server
+
+Extended the Task 04 Todo server with Node.js EventEmitter, logging, analytics, and event history.
+
+Implemented:
+
+EventEmitter-based event system
+CRUD events and error events
+Console logging for events
+Operation counters and daily statistics
+Recent events history (up to 100 events)
+GET /analytics endpoint
+GET /events?last=n endpoint
+Validation and error handling
+CORS support
+Run tests
+node task-05-test.js
+Run server
+node task-05.js
+
+Files:
+
+task-05.js
+task-05-test.js
+task-05.txt
