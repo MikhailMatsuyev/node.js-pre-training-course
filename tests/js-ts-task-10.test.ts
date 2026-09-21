@@ -1,8 +1,13 @@
 import { ToDoManager } from '../JS-TS/solutions/todo-manager';
+import { TodoStatus } from '../JS-TS/solutions/types';
 
 describe('Task 10: ToDoManager Facade', () => {
   jest.setTimeout(10000);
-  const manager = new ToDoManager();
+  let manager: ToDoManager;
+
+  beforeEach(() => {
+    manager = new ToDoManager();
+  });
 
   it('init should seed data', async () => {
     await manager.init();
@@ -17,6 +22,6 @@ describe('Task 10: ToDoManager Facade', () => {
     await manager.complete(item.id);
     list = await manager.list();
     const completed = list.find((t) => t.id === item.id)!;
-    expect(completed.status).not.toBe(item.status);
+    expect(completed.status).toBe(TodoStatus.COMPLETED);
   });
 });

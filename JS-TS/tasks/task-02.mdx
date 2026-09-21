@@ -18,11 +18,16 @@ Create a zero-dependency utility module that implements **five** immutable, type
 5. `groupBy<T, K extends PropertyKey>(source: readonly T[], keySelector: (item: T) => K): Record<K, T[]>` — groups items by a computed key.
 
 ### Additional Constraints
-• All helpers must throw a `TypeError` if `source` is `null` or `undefined`.  
+• All helpers must check `source` at runtime and throw a `TypeError` if it is
+  `null` or `undefined`. TypeScript types disappear at runtime, so add an
+  explicit check like `if (source == null) throw new TypeError(...)` at the
+  top of each function — don't rely on the type annotation alone.
 • The original array reference must remain unchanged after a call (deep immutability not required).  
 • Re-implement logic from scratch; **do not** call the native `Array.prototype` counterparts.  
 • Use ES2017 syntax or newer (`const`, `let`, arrow functions, `for…of`).  
 • Add _exact_ exported names; no default export.
+• `groupBy`'s accumulator needs a type assertion: `const acc = {} as Record<K, T[]>`
+  (an empty object literal doesn't satisfy `Record<K, T[]>` for a type parameter `K`).
 
 ### Usage Examples
 ```ts
@@ -38,4 +43,6 @@ const grouped = groupBy([
   { id: 3, tag: 'home' }
 ], t => t.tag);
 // grouped => { home: [ {…}, {…} ], work: [ {…} ] }
+
+const acc = {} as Record<K, T[]>; // undefined at runtime for a key that never occurred
 ```

@@ -23,4 +23,11 @@ describe('Task 05: Bulk operations & selectors', () => {
     const count = countByStatus(list, TodoStatus.PENDING);
     expect(count).toBe(2);
   });
+
+  it('toggleAll with false should mark all as pending', () => {
+    const done = toggleAll(list, true);
+    const reverted = toggleAll(done, false);
+    expect(reverted.every((t) => t.status === TodoStatus.PENDING)).toBe(true);
+    expect(done.every((t) => t.status === TodoStatus.COMPLETED)).toBe(true);
+  });
 });

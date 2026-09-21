@@ -1,9 +1,9 @@
 import { addTodo, updateTodo, removeTodo, getTodo } from '../JS-TS/solutions/todo-crud';
 import { createTodo } from '../JS-TS/solutions/todo-factory';
-import { TodoStatus } from '../JS-TS/solutions/types';
+import { Todo, TodoStatus } from '../JS-TS/solutions/types';
 
 describe('Task 04: CRUD operations', () => {
-  const base = [];
+  const base: Todo[] = [];
   const todo = createTodo({ title: 'X' });
 
   it('addTodo should add item immutably', () => {
@@ -29,5 +29,15 @@ describe('Task 04: CRUD operations', () => {
   it('getTodo should return item by id', () => {
     const list = addTodo(base, todo);
     expect(getTodo(list, todo.id)).toEqual(todo);
+  });
+
+  it('updateTodo should throw for a non-existing id', () => {
+    const list = addTodo(base, todo);
+    expect(() => updateTodo(list, -1, { status: TodoStatus.COMPLETED })).toThrow();
+  });
+
+  it('removeTodo should throw for a non-existing id', () => {
+    const list = addTodo(base, todo);
+    expect(() => removeTodo(list, -1)).toThrow();
   });
 });

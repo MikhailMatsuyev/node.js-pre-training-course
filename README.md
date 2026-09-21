@@ -23,7 +23,7 @@ node.js-pre-training-practice/
 │        └── node/           # Node.js specific solutions
 │        ├── express/        # Express.js solutions
 │        └── nest/           # NestJS solutions
-├── DB-NoSQL/               # Database queries
+├── DB/                     # Database queries
 │   ├── tasks/               # SQL and MongoDB tasks
 │   └── solutions/           # Database solutions
 ├── Docker-Git/             # DevOps and version control
@@ -52,11 +52,11 @@ node.js-pre-training-practice/
    - NestJS tasks for advanced backend patterns
    - Complete all 10 tasks in `Node-Express-Nest/tasks/`
 
-4. **DB-NoSQL**: Database operations
+4. **DB**: Database operations
 
    - SQL queries for relational databases
    - MongoDB operations for NoSQL
-   - Complete all 10 tasks in `DB-NoSQL/tasks/`
+   - Complete all 10 tasks in `DB/tasks/`
 
 5. **Docker-Git**: DevOps and deployment
    - Containerization with Docker
@@ -74,7 +74,6 @@ npm test
 # Test specific topics
 npm run test:js-ts
 npm run test:docker-git
-npm run test:db-nosql
 ```
 
 ### React Application Tests

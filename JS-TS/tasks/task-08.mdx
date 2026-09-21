@@ -12,7 +12,10 @@ Create a `TodoService` class that orchestrates business logic by consuming the `
 1. Implement `solutions/todo-service.ts` with a constructor that accepts an instance of `TodoApi`.
 2. Expose high-level methods:
    - `create(title: string, description?: string): Promise<Todo>`
-   - `toggleStatus(id: number): Promise<Todo>`
+   - `toggleStatus(id: number): Promise<Todo>` – cycles the status
+     `PENDING → IN_PROGRESS → COMPLETED → PENDING`
+   - `setStatus(id: number, status: TodoStatus): Promise<Todo>`
    - `search(keyword: string): Promise<Todo[]>` (search in title & description, case-insensitive).
 3. Do **not** touch the storage layer directly; always delegate to `TodoApi`.
 4. Add input validation and throw meaningful errors.
+   Reject creation when `title` is empty or contains only whitespace.

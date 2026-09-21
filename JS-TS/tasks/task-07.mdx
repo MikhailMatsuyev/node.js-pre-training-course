@@ -13,6 +13,14 @@ Abstract the data-access layer by creating a reusable, generic repository that c
    ```ts
    export class InMemoryRepository<T extends { id: number }> { /* ... */ }
    ```  
-   featuring methods: `add(entity: T)`, `update(id: number, patch: Partial<T>)`, `remove(id: number)`, `findById(id: number)`, `findAll()`.
-2. Ensure methods return `T` or `T[]` and keep the internal list private.
-3. Use this repository inside `TodoApi` instead of raw arrays (refactor previous task).
+   featuring methods: `add(entity: T): T`, `update(id: number, patch: Partial<T>): T`,
+   `remove(id: number): void`, `findById(id: number): T | undefined`, `findAll(): T[]`.
+   `update` and `remove` throw a plain `Error` when no entity with the given
+   `id` exists.
+2. Keep the internal list private. The class is generic over `T` and knows
+   nothing about todos — `TodoNotFoundError` belongs to the API layer (Task 6).
+3. Refactor `TodoApi` from Task 6 to use this repository instead of its raw
+   array, injected through the constructor with a default:
+   ```ts
+   constructor(private readonly repo = new InMemoryRepository<Todo>()) {}
+   ```

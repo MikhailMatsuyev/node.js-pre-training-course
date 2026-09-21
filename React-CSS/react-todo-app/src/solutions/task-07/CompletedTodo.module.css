@@ -1,4 +1,4 @@
-.todo-item {
+.todoItem {
   padding: 10px;
   margin: 5px 0;
   border: 1px solid #ddd;
@@ -6,8 +6,8 @@
   background-color: #f9f9f9;
 }
 
-.todo-item.completed {
+.completed {
   background-color: #e8f5e8;
   text-decoration: line-through;
   color: #666;
-} 
+}

@@ -2,11 +2,15 @@ import { InMemoryRepository } from '../JS-TS/solutions/repository';
 
 describe('Task 07: Generic Repository', () => {
   interface Entity { id: number; value: string; }
-  const repo = new InMemoryRepository<Entity>();
+  let repo: InMemoryRepository<Entity>;
 
-  it('add and findAll should work', () => {
+  beforeEach(() => {
+    repo = new InMemoryRepository<Entity>();
     repo.add({ id: 1, value: 'A' });
     repo.add({ id: 2, value: 'B' });
+  });
+
+  it('add and findAll should work', () => {
     expect(repo.findAll().length).toBe(2);
   });
 

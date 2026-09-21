@@ -1,8 +1,8 @@
-import { InMemoryRepository } from './repository';
 import { Todo, NewTodo } from './types';
 
 export class TodoApi {
-  private repo = new InMemoryRepository<Todo>();
+  // Task 6 stores todos in a plain array; Task 7 replaces it with InMemoryRepository
+  private todos: Todo[] = [];
 
   async getAll(): Promise<Todo[]> {
     throw new Error('getAll: not implemented');
