@@ -11,13 +11,16 @@ const express = require("express");
  * Logs method, path, and timestamp for every request.
  */
 function logger(req, res, next) {
-  // TODO: Implement logger middleware
-  // 1. Initialize req.executionLog = [] if it doesn't exist yet (this runs first)
-  // 2. Log something like `[LOGGER] ${req.method} ${req.path} - ${new Date().toISOString()}`
-  // 3. Push "logger" onto req.executionLog
-  // 4. Call next() to continue to the next middleware
+  if (!req.executionLog) {
+    req.executionLog = [];
+  }
 
-  console.log("Logger middleware not implemented yet");
+  console.log(
+      `[LOGGER] ${req.method} ${req.path} - ${new Date().toISOString()}`
+  );
+
+  req.executionLog.push("logger");
+
   next();
 }
 
@@ -26,14 +29,16 @@ function logger(req, res, next) {
  * Records how long the request took to process.
  */
 function timer(req, res, next) {
-  // TODO: Implement timer middleware
-  // 1. Record the start time: req.startTime = Date.now()
-  // 2. Push "timer" onto req.executionLog
-  // 3. Register res.on("finish", () => { ... }) and log the elapsed
-  //    time (Date.now() - req.startTime) once the response is sent
-  // 4. Call next() immediately (do not wait for "finish")
+  req.startTime = Date.now();
 
-  console.log("Timer middleware not implemented yet");
+  req.executionLog.push("timer");
+
+  res.on("finish", () => {
+    const elapsed = Date.now() - req.startTime;
+
+    console.log(`[TIMER] ${req.method} ${req.path} took ${elapsed}ms`);
+  });
+
   next();
 }
 
@@ -42,13 +47,10 @@ function timer(req, res, next) {
  * Adds a custom response header to every response.
  */
 function headerInjector(req, res, next) {
-  // TODO: Implement header injector middleware
-  // 1. Set a custom response header, e.g.
-  //    res.set("X-Powered-By-Course", "node-express-nest")
-  // 2. Push "headerInjector" onto req.executionLog
-  // 3. Call next() to continue to the next middleware
+  res.set("X-Powered-By-Course", "node-express-nest");
 
-  console.log("Header injector middleware not implemented yet");
+  req.executionLog.push("headerInjector");
+
   next();
 }
 
@@ -60,34 +62,31 @@ function headerInjector(req, res, next) {
 function createApp() {
   const app = express();
 
-  // TODO: Register middlewares in the correct order
-  // 1. app.use(logger)
-  // 2. app.use(timer)
-  // 3. app.use(headerInjector)
+  app.use(logger)
+  app.use(timer)
+  app.use(headerInjector)
 
   app.get("/", (req, res) => {
-    // TODO: Return a welcome message
-    // e.g. res.json({ success: true, message: "Welcome to the Middleware Playground!" })
-    console.log("GET / not implemented yet");
-    res.status(501).json({ success: false, error: "GET / not implemented yet" });
+    res.json({
+      success: true,
+      message: "Welcome to the Middleware Playground!",
+    });
   });
 
   app.get("/about", (req, res) => {
-    // TODO: Return a small JSON payload describing this app
-    // e.g. res.json({ success: true, data: { name: "Middleware Playground", version: "1.0.0" } })
-    console.log("GET /about not implemented yet");
-    res
-      .status(501)
-      .json({ success: false, error: "GET /about not implemented yet" });
+    res.json({
+      success: true,
+      data: {
+        name: "Middleware Playground",
+        version: "1.0.0",
+      },
+    });
   });
 
   app.get("/sequence", (req, res) => {
-    // TODO: Return { executionLog: req.executionLog } so callers/tests
-    // can verify middleware ran in the expected order
-    console.log("GET /sequence not implemented yet");
-    res
-      .status(501)
-      .json({ success: false, error: "GET /sequence not implemented yet" });
+    res.json({
+      executionLog: req.executionLog,
+    });
   });
 
   return app;
