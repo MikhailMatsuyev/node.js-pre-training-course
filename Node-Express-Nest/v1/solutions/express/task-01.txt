@@ -1,0 +1,15 @@
+Task 01: Middleware Playground
+
+Implemented an Express middleware chain with
+a logger, timer, and custom header injector.
+Added routes for /, /about, and /sequence to demonstrate middleware execution
+order and request processing.
+
+Run:
+node Node-Express-Nest/v1/solutions/express/task-01.js
+
+Test:
+node Node-Express-Nest/v1/solutions/express/task-01-test.js
+
+Implementation:
+See task-01.js.
