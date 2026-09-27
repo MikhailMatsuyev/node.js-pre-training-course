@@ -11,26 +11,30 @@ const express = require("express");
  * req.query.active (must be exactly "true" or "false").
  */
 function validateUserParams(req, res, next) {
-  // TODO: Implement validation
-  // 1. Check req.params.id against a numeric pattern, e.g. /^\d+$/
-  //    - If invalid, respond 400 with
-  //      { success: false, error: "id must be a positive number" }
-  //      and do NOT call next()
-  // 2. Check req.query.active
-  //    - If missing or not exactly "true"/"false", respond 400 with
-  //      { success: false, error: "active must be 'true' or 'false'" }
-  //      and do NOT call next()
-  // 3. If both checks pass, attach parsed values for the route handler:
-  //      req.validated = {
-  //        id: Number(req.params.id),
-  //        active: req.query.active === "true",
-  //      };
-  // 4. Call next()
+  const id = req.params.id;
 
-  console.log("validateUserParams not implemented yet");
-  res
-    .status(501)
-    .json({ success: false, error: "Validation not implemented yet" });
+  if (!/^\d+$/.test(id) || Number(id) <= 0) {
+    return res.status(400).json({
+      success: false,
+      error: "id must be a positive number",
+    });
+  }
+
+  const active = req.query.active;
+
+  if (active !== "true" && active !== "false") {
+    return res.status(400).json({
+      success: false,
+      error: "active must be 'true' or 'false'",
+    });
+  }
+
+  req.validated = {
+    id: Number(id),
+    active: active === "true",
+  };
+
+  next();
 }
 
 /**
@@ -41,17 +45,17 @@ function createApp() {
   const app = express();
 
   app.get("/users/:id", validateUserParams, (req, res) => {
-    // TODO: Implement the route handler
-    // 1. Read req.validated.id and req.validated.active (set by the
-    //    validation middleware)
-    // 2. Build a message: `User ${id} is active` or `User ${id} is inactive`
-    // 3. Respond 200 with
-    //    { success: true, data: { id, active }, message }
+    const { id, active } = req.validated;
+    const message = `User ${id} is ${active ? "active" : "inactive"}`;
 
-    console.log("GET /users/:id not implemented yet");
-    res
-      .status(501)
-      .json({ success: false, error: "GET /users/:id not implemented yet" });
+    res.status(200).json({
+      success: true,
+      data: {
+        id,
+        active,
+      },
+      message,
+    });
   });
 
   return app;

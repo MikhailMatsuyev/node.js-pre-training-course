@@ -1,0 +1,30 @@
+Task 03: Centralized Error Handler
+
+Implemented centralized error handling with:
+
+AppError for operational errors with custom HTTP status codes;
+a centralized error-handling middleware;
+
+
+3 Bonus tasks:
+a 404 handler for unknown routes;
+separate handling of operational and unexpected errors;
+requestId for error traceability.
+
+Routes:
+
+GET /ok
+GET /error/sync
+GET /error/async
+GET /error/custom
+
+Unknown routes return a centralized 404 response.
+
+Run:
+node Node-Express-Nest/v1/solutions/express/task-03.js
+
+Test:
+node Node-Express-Nest/v1/solutions/express/task-03-test.js
+
+Implementation:
+See task-03.js.

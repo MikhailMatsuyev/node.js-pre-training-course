@@ -1,4 +1,5 @@
 const express = require("express");
+const crypto = require("crypto");
 
 /**
  * Task 03: Centralized Error Handler
@@ -12,11 +13,8 @@ const express = require("express");
 class AppError extends Error {
   constructor(message, statusCode = 500) {
     // TODO: Implement AppError
-    // 1. Call super(message)
-    // 2. Set this.statusCode = statusCode
-
     super(message);
-    console.log("AppError constructor not fully implemented yet");
+    this.statusCode = statusCode;
   }
 }
 
@@ -28,43 +26,29 @@ function createApp() {
   const app = express();
 
   app.get("/ok", (req, res) => {
-    // TODO: Return a normal success response
-    // e.g. res.json({ success: true, message: "Everything is fine" })
-    console.log("GET /ok not implemented yet");
-    res.status(501).json({ success: false, error: "GET /ok not implemented yet" });
+    res.json({
+      success: true,
+      message: "Everything is fine",
+    });
   });
 
   app.get("/error/sync", (req, res) => {
     // TODO: Synchronously throw a plain Error("Something went wrong")
     // Express 5 will automatically forward it to the error middleware below.
-
-    console.log("GET /error/sync not implemented yet");
-    res
-      .status(501)
-      .json({ success: false, error: "GET /error/sync not implemented yet" });
+    throw new Error("Something went wrong");
   });
 
   app.get("/error/async", async (req, res) => {
     // TODO: In an async handler, throw Error("Async failure")
     // Express 5 automatically forwards rejected promises from async
     // handlers to the error middleware below.
-
-    console.log("GET /error/async not implemented yet");
-    res
-      .status(501)
-      .json({ success: false, error: "GET /error/async not implemented yet" });
+    throw new Error("Async failure");
   });
 
   app.get("/error/custom", (req, res) => {
     // TODO: throw new AppError("Resource not found", 404)
 
-    console.log("GET /error/custom not implemented yet");
-    res
-      .status(501)
-      .json({
-        success: false,
-        error: "GET /error/custom not implemented yet",
-      });
+    throw new AppError("Resource not found", 404);
   });
 
   // TODO: Register the centralized error-handling middleware LAST, after
@@ -79,6 +63,38 @@ function createApp() {
   // app.use((err, req, res, next) => {
   //   ...
   // });
+  app.use((req, res, next) => {
+    req.requestId = crypto.randomUUID();
+    next();
+  });
+
+  app.use((req, res, next) => {
+    next(new AppError("Route not found", 404));
+  });
+
+  app.use((err, req, res, next) => {
+    const status = err.statusCode || 500;
+
+    if (err instanceof AppError) {
+      console.error("[Operational Error]", err);
+
+      return res.status(status).json({
+        status,
+        message: err.message,
+        timestamp: new Date().toISOString(),
+        requestId: req.requestId,
+      });
+    }
+
+    console.error("[Programmer Error]", err);
+
+    res.status(500).json({
+      status: 500,
+      message: "Internal Server Error",
+      timestamp: new Date().toISOString(),
+      requestId: req.requestId,
+    });
+  });
 
   return app;
 }

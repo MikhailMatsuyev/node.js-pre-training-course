@@ -1,0 +1,27 @@
+Task 02: Params and Queries Challenge with Validation
+
+Implemented an Express application with validation middleware for route parameters and query parameters.
+
+Validation:
+
+id — must be a positive integer;
+active — must be exactly true or false;
+validated values are stored in req.validated.
+
+Route:
+
+GET /users/:id?active=true|false
+
+The route returns the user ID, active status, and a corresponding message.
+
+Run:
+node Node-Express-Nest/v1/solutions/express/task-02.js
+
+Test:
+node Node-Express-Nest/v1/solutions/express/task-02-test.js
+
+Test result:
+5 passed, 0 failed — 100%.
+
+Implementation:
+See task-02.js.
