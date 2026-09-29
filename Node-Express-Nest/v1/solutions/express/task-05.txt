@@ -1,0 +1,39 @@
+Task 05: Request Logging and Metrics Middleware
+
+Implemented request logging and metrics middleware with:
+
+request counting;
+requests grouped by HTTP method;
+average response time calculation;
+logging of method, path, status and response time;
+excluding /metrics from statistics.
+
+Routes:
+
+GET /
+GET /todos
+GET /slow
+GET /metrics
+
+Test:
+
+node Node-Express-Nest/v1/solutions/express/task-05-test.js
+
+Manual check:
+
+Run:
+node Node-Express-Nest/v1/solutions/express/task-05.js
+
+curl http://localhost:4005/todos
+
+curl http://localhost:4005/metrics
+
+The metrics result can be seen in the /metrics response:
+
+{"success","data":{"totalRequests":1,"averageResponseTimeMs":2,"requestsByMethod":{"GET":1}}}
+
+This means that one GET request was recorded, with an average response time of 2 ms.
+
+Implementation:
+
+See task-05.js.

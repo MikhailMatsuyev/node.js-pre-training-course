@@ -26,7 +26,14 @@ class MetricsTracker {
     // 2. Add durationMs to this.totalResponseTime
     // 3. Increment this.requestsByMethod[method] (initialize to 0 first if needed)
 
-    console.log("MetricsTracker.record not implemented yet");
+    this.totalRequests++;
+    this.totalResponseTime += durationMs;
+
+    if (!this.requestsByMethod[method]) {
+      this.requestsByMethod[method] = 0;
+    }
+
+    this.requestsByMethod[method]++;
   }
 
   /**
@@ -38,8 +45,16 @@ class MetricsTracker {
     //    (guard against division by zero when totalRequests is 0 -> return 0)
     // 2. Return { totalRequests, averageResponseTimeMs, requestsByMethod }
 
-    console.log("MetricsTracker.getSnapshot not implemented yet");
-    return { totalRequests: 0, averageResponseTimeMs: 0, requestsByMethod: {} };
+    const averageResponseTimeMs =
+        this.totalRequests === 0
+            ? 0
+            : this.totalResponseTime / this.totalRequests;
+
+    return {
+      totalRequests: this.totalRequests,
+      averageResponseTimeMs,
+      requestsByMethod: this.requestsByMethod,
+    };
   }
 }
 
@@ -58,9 +73,24 @@ function createMetricsMiddleware(metricsTracker) {
     //    c. calls metricsTracker.record(req.method, duration)
     // 4. Call next() immediately (do not wait for "finish")
 
-    console.log("metricsMiddleware not implemented yet");
-    next();
-  };
+      if (req.path === "/metrics") {
+        return next();
+      }
+
+      const start = Date.now();
+
+      res.on("finish", () => {
+        const durationMs = Date.now() - start;
+
+        console.log(
+            `${req.method} ${req.path} -> ${res.statusCode} (${durationMs}ms)`
+        );
+
+        metricsTracker.record(req.method, durationMs);
+      });
+
+      next();
+    };
 }
 
 /**
@@ -72,39 +102,46 @@ function createApp() {
   const metricsTracker = new MetricsTracker();
 
   // TODO: Register the metrics middleware globally, before the routes
-  // app.use(createMetricsMiddleware(metricsTracker));
+  app.use(createMetricsMiddleware(metricsTracker));
 
   app.get("/", (req, res) => {
     // TODO: Return a simple welcome message
-    console.log("GET / not implemented yet");
-    res.status(501).json({ success: false, error: "GET / not implemented yet" });
+    res.json({
+      success: true,
+      message: "Request Logging & Metrics API",
+    });
   });
 
   app.get("/todos", (req, res) => {
     // TODO: Return a small hard-coded list of todos, e.g.
     // res.json({ success: true, data: [{ id: 1, title: "Sample todo" }] })
-    console.log("GET /todos not implemented yet");
-    res
-      .status(501)
-      .json({ success: false, error: "GET /todos not implemented yet" });
+    res.json({
+      success: true,
+      data: [
+        { id: 1, title: "Sample todo" },
+        { id: 2, title: "Another todo" },
+      ],
+    });
   });
 
   app.get("/slow", (req, res) => {
     // TODO: Artificially delay the response, e.g.
     // setTimeout(() => res.json({ success: true, message: "That took a while!" }), 200)
-    console.log("GET /slow not implemented yet");
-    res
-      .status(501)
-      .json({ success: false, error: "GET /slow not implemented yet" });
+    setTimeout(() => {
+      res.json({
+        success: true,
+        message: "That took a while!",
+      });
+    }, 200);
   });
 
   app.get("/metrics", (req, res) => {
     // TODO: Return metricsTracker.getSnapshot() in the standard envelope
     // res.json({ success: true, data: metricsTracker.getSnapshot() })
-    console.log("GET /metrics not implemented yet");
-    res
-      .status(501)
-      .json({ success: false, error: "GET /metrics not implemented yet" });
+    res.json({
+      success: true,
+      data: metricsTracker.getSnapshot(),
+    });
   });
 
   return app;
