@@ -28,8 +28,11 @@ function getAll(filters = {}) {
   //    `completed` value
   // 3. Return the (possibly filtered) array
 
-  console.log("todoService.getAll not implemented yet");
-  return [];
+  if (typeof filters.completed === "boolean") {
+    return todos.filter((todo) => todo.completed === filters.completed);
+  }
+
+  return todos;
 }
 
 /**
@@ -43,8 +46,8 @@ function getById(id) {
   // 2. Find and return the matching todo from `todos`
   // 3. Return undefined if not found
 
-  console.log("todoService.getById not implemented yet");
-  return undefined;
+  const numId = Number(id);
+  return todos.find((todo) => todo.id === numId);
 }
 
 /**
@@ -69,8 +72,18 @@ function create(data) {
   // 2. Push it onto `todos`
   // 3. Return the created todo
 
-  console.log("todoService.create not implemented yet");
-  return null;
+  const todo = {
+    id: nextId++,
+    title: data.title,
+    description: data.description || "",
+    completed: Boolean(data.completed) || false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  todos.push(todo);
+
+  return todo;
 }
 
 /**
@@ -87,8 +100,16 @@ function update(id, changes) {
   // 4. Set updatedAt = new Date()
   // 5. Return the updated todo
 
-  console.log("todoService.update not implemented yet");
-  return undefined;
+  const todo = getById(id);
+
+  if (!todo) {
+    return undefined;
+  }
+
+  Object.assign(todo, changes);
+  todo.updatedAt = new Date();
+
+  return todo;
 }
 
 /**
@@ -103,8 +124,15 @@ function remove(id) {
   // 3. Remove it from `todos` with splice()
   // 4. Return true
 
-  console.log("todoService.remove not implemented yet");
-  return false;
+  const numId = Number(id);
+  const index = todos.findIndex((todo) => todo.id === numId);
+
+  if (index === -1) {
+    return false;
+  }
+
+  todos.splice(index, 1);
+  return true;
 }
 
 /**

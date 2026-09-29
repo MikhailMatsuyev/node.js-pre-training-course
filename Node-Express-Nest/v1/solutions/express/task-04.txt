@@ -1,0 +1,24 @@
+Task 04: Wire Up ToDo REST API
+
+Implemented a Todo REST API with a separate in-memory service layer, CRUD operations, validation middleware, filtering by completion status, and proper HTTP status codes and JSON responses.
+
+Bonus:
+moved all /todos routes to an express.Router() for better route organization.
+
+Routes:
+
+GET /todos
+GET /todos?completed=true
+GET /todos/
+POST /todos
+PUT /todos/
+DELETE /todos/
+
+Run:
+node Node-Express-Nest/v1/solutions/express/task-04.js
+
+Test:
+node Node-Express-Nest/v1/solutions/express/task-04-test.js
+
+Implementation:
+See task-04.js and todoService.js.
