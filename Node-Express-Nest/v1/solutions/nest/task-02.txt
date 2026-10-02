@@ -1,0 +1,5 @@
+Task 02 — Dependency Injection Chain
+
+Implemented AuditService → UserService → LoggerService
+
+npx jest task-02.spec.ts --runInBand

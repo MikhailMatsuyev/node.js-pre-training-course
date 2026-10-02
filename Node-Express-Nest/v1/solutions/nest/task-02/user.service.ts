@@ -30,8 +30,16 @@ export class UserService {
    * 4. Return the created user.
    */
   createUser(name: string, email: string): User {
-    // TODO: implement as described above
-    return { id: 0, name, email };
+    const user: User = {
+      id: this.nextId++,
+      name,
+      email,
+    };
+
+    this.users.push(user);
+    this.logger.log("UserService", `Created user ${user.id}: ${user.name}`);
+
+    return user;
   }
 
   /**
@@ -41,15 +49,13 @@ export class UserService {
    * 2. Return the user, or `undefined` if not found.
    */
   findById(id: number): User | undefined {
-    // TODO: implement as described above
-    return undefined;
+    return this.users.find((user) => user.id === id);
   }
 
   /**
    * Return every user currently stored.
    */
   findAll(): User[] {
-    // TODO: return this.users
-    return [];
+    return this.users;
   }
 }

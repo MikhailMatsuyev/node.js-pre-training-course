@@ -22,14 +22,15 @@ export class LoggerService {
    * 3. `console.log` it.
    */
   log(context: string, message: string): void {
-    // TODO: implement as described above
+    const line = `[${context}] ${message}`;
+    this.history.push(line);
+    console.log(line);
   }
 
   /**
    * Return every recorded log line, oldest first.
    */
   getHistory(): string[] {
-    // TODO: return this.history
-    return [];
+    return this.history;
   }
 }

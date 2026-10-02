@@ -15,7 +15,7 @@ import { AuditService } from "./audit.service";
  * *chain* between providers, not module boundaries.
  */
 @Module({
-  providers: [],
-  exports: [],
+  providers: [LoggerService, UserService, AuditService],
+  exports: [AuditService, UserService],
 })
 export class DiChainModule {}

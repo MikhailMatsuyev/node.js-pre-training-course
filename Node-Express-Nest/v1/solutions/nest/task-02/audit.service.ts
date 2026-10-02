@@ -35,23 +35,35 @@ export class AuditService {
    * 4. Return the created entry.
    */
   recordAction(userId: number, action: string): AuditEntry {
-    // TODO: implement as described above
-    return { id: 0, userId, action, timestamp: new Date() };
+    const user = this.userService.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    const entry: AuditEntry = {
+      id: this.nextId++,
+      userId,
+      action,
+      timestamp: new Date(),
+    };
+
+    this.entries.push(entry);
+
+    return entry;
   }
 
   /**
    * Return all audit entries recorded for a given user.
    */
   getLogForUser(userId: number): AuditEntry[] {
-    // TODO: filter this.entries by userId
-    return [];
+    return this.entries.filter((entry) => entry.userId === userId);
   }
 
   /**
    * Return every audit entry recorded so far.
    */
   getAllLogs(): AuditEntry[] {
-    // TODO: return this.entries
-    return [];
+    return this.entries;
   }
 }
