@@ -21,8 +21,9 @@ export class MathService {
    * 2. Return the sum.
    */
   add(a: number, b: number): number {
-    // TODO: implement as described above
-    return 0;
+    const result = a + b;
+    this.logger.log("MathService", `add: ${a} + ${b} = ${result}`);
+    return result;
   }
 
   /**
@@ -32,8 +33,9 @@ export class MathService {
    * 2. Return the difference.
    */
   subtract(a: number, b: number): number {
-    // TODO: implement as described above
-    return 0;
+    const result = a - b;
+    this.logger.log("MathService", `subtract: ${a} - ${b} = ${result}`);
+    return result;
   }
 
   /**
@@ -43,8 +45,9 @@ export class MathService {
    * 2. Return the product.
    */
   multiply(a: number, b: number): number {
-    // TODO: implement as described above
-    return 0;
+    const result = a * b;
+    this.logger.log("MathService", `multiply: ${a} * ${b} = ${result}`);
+    return result;
   }
 
   /**
@@ -55,7 +58,13 @@ export class MathService {
    * 2. Otherwise log the operation and return the quotient.
    */
   divide(a: number, b: number): number {
-    // TODO: implement as described above
-    return 0;
+    if (b === 0) {
+      this.logger.error("MathService", "Division by zero");
+      throw new Error("Cannot divide by zero");
+    }
+
+    const result = a / b;
+    this.logger.log("MathService", `divide: ${a} / ${b} = ${result}`);
+    return result;
   }
 }

@@ -1,0 +1,30 @@
+Task 01 — Modular NestJS Setup
+
+The solution is split into two modules:
+
+LoggerModule provides and exports the shared LoggerService.
+MathModule imports LoggerModule and provides MathService and MathController.
+
+MathService receives LoggerService through NestJS dependency injection and uses it to log arithmetic operations and division-by-zero errors.
+
+MathController receives both MathService and LoggerService through dependency injection. The controller delegates arithmetic operations to MathService.
+
+The dependency graph is:
+
+MathModule → LoggerModule → LoggerService
+
+and:
+
+MathModule → MathService → LoggerService
+
+MathModule → MathController → MathService
+
+This allows the same LoggerService instance to be shared through NestJS dependency injection.
+
+Running the solution
+
+From the solutions/nest/ directory:
+
+npm install
+npx jest task-01/task-01.spec.ts
+Test result

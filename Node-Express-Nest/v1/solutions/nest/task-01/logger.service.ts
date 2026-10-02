@@ -28,7 +28,9 @@ export class LoggerService {
    * @param message - What happened.
    */
   log(context: string, message: string): void {
-    // TODO: implement as described above
+    const line = `[LOG] [${context}] ${message}`;
+    this.history.push(line);
+    console.log(line);
   }
 
   /**
@@ -42,7 +44,9 @@ export class LoggerService {
    * @param message - What went wrong.
    */
   error(context: string, message: string): void {
-    // TODO: implement as described above
+    const line = `[ERROR] [${context}] ${message}`;
+    this.history.push(line);
+    console.error(line);
   }
 
   /**
@@ -54,8 +58,7 @@ export class LoggerService {
    * @returns All recorded log lines, oldest first.
    */
   getHistory(): string[] {
-    // TODO: return this.history
-    return [];
+    return this.history;
   }
 
   /**
@@ -64,6 +67,6 @@ export class LoggerService {
    * Handy between test cases so assertions do not leak across specs.
    */
   clearHistory(): void {
-    // TODO: reset this.history to an empty array
+    this.history.length = 0;
   }
 }

@@ -33,7 +33,7 @@ export class MathController {
   @Get("add")
   add(@Query("a") a: string, @Query("b") b: string): { result: number } {
     // TODO: implement as described above
-    return { result: 0 };
+    return { result: this.mathService.add(Number(a), Number(b)) };
   }
 
   /**
@@ -42,8 +42,7 @@ export class MathController {
    */
   @Get("subtract")
   subtract(@Query("a") a: string, @Query("b") b: string): { result: number } {
-    // TODO: implement as described above
-    return { result: 0 };
+    return { result: this.mathService.subtract(Number(a), Number(b)) };
   }
 
   /**
@@ -52,8 +51,7 @@ export class MathController {
    */
   @Get("multiply")
   multiply(@Query("a") a: string, @Query("b") b: string): { result: number } {
-    // TODO: implement as described above
-    return { result: 0 };
+    return { result: this.mathService.multiply(Number(a), Number(b)) };
   }
 
   /**
@@ -64,7 +62,6 @@ export class MathController {
    */
   @Get("divide")
   divide(@Query("a") a: string, @Query("b") b: string): { result: number } {
-    // TODO: implement as described above
-    return { result: 0 };
+    return { result: this.mathService.divide(Number(a), Number(b)) };
   }
 }

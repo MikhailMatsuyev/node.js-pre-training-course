@@ -17,8 +17,8 @@ import { MathController } from "./math.controller";
  * actually uses.
  */
 @Module({
-  imports: [],
-  controllers: [],
-  providers: [],
+  imports: [LoggerModule],
+  controllers: [MathController],
+  providers: [MathService],
 })
 export class MathModule {}

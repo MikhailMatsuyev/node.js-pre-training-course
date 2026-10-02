@@ -15,7 +15,7 @@ import { LoggerService } from "./logger.service";
  * never the other way around.
  */
 @Module({
-  providers: [],
-  exports: [],
+  providers: [LoggerService],
+  exports: [LoggerService],
 })
 export class LoggerModule {}
