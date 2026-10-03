@@ -30,7 +30,12 @@ export class LifecycleInterceptor implements NestInterceptor {
    * @param next - Handler for the rest of the request pipeline.
    */
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    // TODO: implement as described above
-    return next.handle();
+    this.executionLog.record("interceptor:before");
+
+    return next.handle().pipe(
+      tap(() => {
+        this.executionLog.record("interceptor:after");
+      }),
+    );
   }
 }

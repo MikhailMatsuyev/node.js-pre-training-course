@@ -27,7 +27,14 @@ export class LifecyclePipe implements PipeTransform<string, number> {
    * @param metadata - Nest-provided info about the argument (unused here).
    */
   transform(value: string, metadata: ArgumentMetadata): number {
-    // TODO: implement as described above
-    return 0;
+    this.executionLog.record("pipe");
+
+    const parsed = Number(value);
+
+    if (Number.isNaN(parsed)) {
+      throw new BadRequestException();
+    }
+
+    return parsed;
   }
 }

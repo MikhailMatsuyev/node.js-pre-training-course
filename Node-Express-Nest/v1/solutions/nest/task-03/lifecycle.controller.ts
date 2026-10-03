@@ -27,7 +27,7 @@ export class LifecycleController {
    */
   @Get(":id")
   findOne(@Param("id", LifecyclePipe) id: number): { id: number } {
-    // TODO: implement as described above
+    this.executionLog.record("controller");
     return { id };
   }
 }

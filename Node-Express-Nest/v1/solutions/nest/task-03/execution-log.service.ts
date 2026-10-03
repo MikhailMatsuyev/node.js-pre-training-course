@@ -21,15 +21,15 @@ export class ExecutionLogService {
    *    the app manually shows the order in the terminal too.
    */
   record(stage: string): void {
-    // TODO: implement as described above
+    this.stages.push(stage);
+    console.log(stage);
   }
 
   /**
    * Return the stages recorded so far, in order.
    */
   getStages(): string[] {
-    // TODO: return this.stages
-    return [];
+    return this.stages;
   }
 
   /**
@@ -37,6 +37,6 @@ export class ExecutionLogService {
    * assertions do not leak across cases.
    */
   clear(): void {
-    // TODO: reset this.stages to an empty array
+    this.stages.length = 0
   }
 }

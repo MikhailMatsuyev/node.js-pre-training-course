@@ -18,7 +18,12 @@ import { LifecycleController } from "./lifecycle.controller";
  * tests override them with `overrideProvider` if needed.
  */
 @Module({
-  controllers: [],
-  providers: [],
+  controllers: [LifecycleController],
+  providers: [
+    ExecutionLogService,
+    LifecycleGuard,
+    LifecyclePipe,
+    LifecycleInterceptor,
+  ],
 })
 export class LifecycleModule {}

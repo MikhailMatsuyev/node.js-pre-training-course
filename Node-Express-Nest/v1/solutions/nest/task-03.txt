@@ -1,0 +1,28 @@
+Task 03 — Request Lifecycle Exploration
+
+Execution order:
+
+1 guard
+2 interceptor
+3 pipe
+4 controller
+5 interceptor
+
+Why this is the order:
+
+The Guard runs first and determines whether access to the request is allowed.
+The Interceptor executes code before passing control to the next stage.
+The Pipe processes and transforms input parameters before the controller handler is called.
+The Controller executes the route handler.
+Interceptor runs after the controller returns its result.
+
+If the incoming request contains the following header:
+
+x-block: true
+
+the LifecycleGuard throws a ForbiddenException and blocks the request.
+
+Running the tests:
+
+cd E:\project\node.js-pre-training-course\Node-Express-Nest\v1\solutions\nest
+npx jest task-03/task-03.spec.ts --runInBand

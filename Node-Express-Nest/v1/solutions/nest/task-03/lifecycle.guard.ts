@@ -26,7 +26,14 @@ export class LifecycleGuard implements CanActivate {
    * 4. Otherwise return `true` to allow the request through.
    */
   canActivate(context: ExecutionContext): boolean {
-    // TODO: implement as described above
+    const request = context.switchToHttp().getRequest();
+
+    this.executionLog.record("guard");
+
+    if (request.headers["x-block"] === "true") {
+      throw new ForbiddenException();
+    }
+
     return true;
   }
 }
