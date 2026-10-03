@@ -33,23 +33,27 @@ export class TodoService {
    * 3. Return the created todo.
    */
   create(dto: CreateTodoDto): Todo {
-    // TODO: implement as described above
-    return {
-      id: 0,
+    const now = new Date();
+
+    const todo: Todo = {
+      id: this.nextId++,
       title: dto.title,
       description: dto.description,
       completed: dto.completed ?? false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
+
+    this.todos.push(todo);
+
+    return todo;
   }
 
   /**
    * Return every todo currently stored.
    */
   findAll(): Todo[] {
-    // TODO: return this.todos
-    return [];
+    return this.todos;
   }
 
   /**
@@ -60,8 +64,13 @@ export class TodoService {
    * 3. Otherwise return it.
    */
   findOne(id: number): Todo {
-    // TODO: implement as described above
-    throw new NotFoundException(`Todo ${id} not found`);
+    const todo = this.todos.find((todo) => todo.id === id);
+
+    if (!todo) {
+      throw new NotFoundException(`Todo ${id} not found`);
+    }
+
+    return todo;
   }
 
   /**
@@ -73,8 +82,23 @@ export class TodoService {
    * 4. Return the updated todo.
    */
   update(id: number, dto: UpdateTodoDto): Todo {
-    // TODO: implement as described above
-    return this.findOne(id);
+    const todo = this.findOne(id);
+
+    if (dto.title !== undefined) {
+      todo.title = dto.title;
+    }
+
+    if (dto.description !== undefined) {
+      todo.description = dto.description;
+    }
+
+    if (dto.completed !== undefined) {
+      todo.completed = dto.completed;
+    }
+
+    todo.updatedAt = new Date();
+
+    return todo;
   }
 
   /**
@@ -84,6 +108,12 @@ export class TodoService {
    * 2. Remove it from `this.todos`.
    */
   remove(id: number): void {
-    // TODO: implement as described above
+    const index = this.todos.findIndex((todo) => todo.id === id);
+
+    if (index === -1) {
+      throw new NotFoundException(`Todo ${id} not found`);
+    }
+
+    this.todos.splice(index, 1);
   }
 }

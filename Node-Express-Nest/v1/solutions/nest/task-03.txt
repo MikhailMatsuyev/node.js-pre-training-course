@@ -24,5 +24,4 @@ the LifecycleGuard throws a ForbiddenException and blocks the request.
 
 Running the tests:
 
-cd E:\project\node.js-pre-training-course\Node-Express-Nest\v1\solutions\nest
 npx jest task-03/task-03.spec.ts --runInBand

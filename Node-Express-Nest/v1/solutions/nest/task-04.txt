@@ -1,0 +1,45 @@
+Task 04 — Setup ToDo CRUD with DTOs
+
+CreateTodoDto is used when creating a new Todo.
+
+Validation rules:
+
+@IsString() — ensures that title and description contain strings.
+@IsNotEmpty() — ensures that title is not empty.
+@MaxLength(100) — limits title to 100 characters.
+@IsOptional() — makes description and completed optional.
+@MaxLength(500) — limits description to 500 characters.
+@IsBoolean() — ensures that completed, when provided, is a boolean.
+
+The completed field is optional. If it is not provided, TodoService sets it to false.
+
+UpdateTodoDto
+
+UpdateTodoDto is used for partial updates.
+
+All fields are optional:
+
+title — optional string, maximum 100 characters.
+description — optional string, maximum 500 characters.
+completed — optional boolean.
+
+@IsOptional() allows an empty update object because every field can be omitted.
+
+ValidationPipe
+
+ValidationPipe is configured at the controller level in TodoController:
+
+@UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+
+Therefore, request bodies handled by this controller are validated before they reach TodoService.
+
+whitelist: true removes properties that are not declared in the DTO.
+For example, an extra property that is not defined in CreateTodoDto or UpdateTodoDto is removed before the data reaches the service.
+
+transform: true transforms the incoming plain request body into an instance of the corresponding DTO class.
+
+This allows NestJS to work with actual DTO instances after validation.
+
+Route parameters use ParseIntPipe to convert :id values from strings to numbers.
+
+npx jest /task-04.spec.ts --runInBand
