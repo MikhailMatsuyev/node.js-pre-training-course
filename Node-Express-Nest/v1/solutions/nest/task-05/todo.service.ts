@@ -34,8 +34,9 @@ export class TodoService {
    * 2. Map each to a `TodoResponseDto`.
    */
   findAll(): TodoResponseDto[] {
-    // TODO: implement as described above
-    return [];
+    return this.todoRepository
+      .find()
+      .map((entity) => TodoMapper.toResponseDto(entity));
   }
 
   /**
@@ -44,8 +45,13 @@ export class TodoService {
    * 3. Map to `TodoResponseDto` and return.
    */
   findOne(id: number): TodoResponseDto {
-    // TODO: implement as described above
-    throw new NotFoundException(`Todo ${id} not found`);
+    const entity = this.todoRepository.findOneBy(id);
+
+    if (!entity) {
+      throw new NotFoundException(`Todo ${id} not found`);
+    }
+
+    return TodoMapper.toResponseDto(entity);
   }
 
   /**
@@ -55,8 +61,14 @@ export class TodoService {
    * 4. Map to `TodoResponseDto` and return.
    */
   update(id: number, dto: UpdateTodoDto): TodoResponseDto {
-    // TODO: implement as described above
-    throw new NotFoundException(`Todo ${id} not found`);
+    const changes = TodoMapper.toEntityChanges(dto);
+    const entity = this.todoRepository.update(id, changes);
+
+    if (!entity) {
+      throw new NotFoundException(`Todo ${id} not found`);
+    }
+
+    return TodoMapper.toResponseDto(entity);
   }
 
   /**
@@ -64,6 +76,10 @@ export class TodoService {
    * 2. If it returns `false`, throw `NotFoundException`.
    */
   remove(id: number): void {
-    // TODO: implement as described above
+    const deleted = this.todoRepository.delete(id);
+
+    if (!deleted) {
+      throw new NotFoundException(`Todo ${id} not found`);
+    }
   }
 }

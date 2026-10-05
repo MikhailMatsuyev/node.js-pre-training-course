@@ -14,10 +14,19 @@ import {
  * - `description`: `@IsOptional()`, `@IsString()`, `@MaxLength(500)`
  * - `completed`: `@IsOptional()`, `@IsBoolean()`
  */
+
 export class CreateTodoDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
   title!: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
   description?: string;
 
+  @IsOptional()
+  @IsBoolean()
   completed?: boolean;
 }

@@ -1,0 +1,355 @@
+Task 05 — ORM Integration with DTO Mapping
+1. Task overview
+
+The task demonstrates separation between HTTP DTOs, internal entities, repository storage, and response DTOs.
+
+Data flow:
+
+HTTP request
+→ CreateTodoDto / UpdateTodoDto
+→ TodoMapper
+→ TodoEntity
+→ TodoRepository
+→ TodoEntity
+→ TodoMapper
+→ TodoResponseDto
+→ HTTP response
+
+The mandatory implementation uses an in-memory repository that imitates the basic interface of an ORM repository.
+
+As a bonus, the task also includes a real PostgreSQL database integration using Prisma.
+
+2. Prerequisites
+
+Required:
+
+Node.js 20
+npm
+PostgreSQL
+Git
+PowerShell
+
+The task was tested with:
+
+Node.js 20.19.0
+npm 10.8.2
+PostgreSQL 17.11
+Prisma 6.19.0
+
+Docker is not required.
+
+3. Install PostgreSQL
+
+On Windows, PostgreSQL can be installed using WinGet:
+
+winget install --id PostgreSQL.PostgreSQL.17 --exact --version 17.11-3
+
+Check the installation:
+
+& "C:\Program Files\PostgreSQL\17\bin\psql.exe" --version
+
+Expected result:
+
+psql (PostgreSQL) 17.11
+
+Make sure the PostgreSQL service is running.
+
+The service name is:
+
+postgresql-x64-17
+4. Configure PostgreSQL password
+
+The task uses the local PostgreSQL user:
+
+postgres
+
+The configured password for the development environment is:
+
+1
+
+Verify that the connection works:
+
+& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres -h localhost -W
+
+Enter the password:
+
+1
+5. Create the database
+
+Create the database:
+
+$env:PGPASSWORD="1"
+& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres -h localhost -c "CREATE DATABASE nest_tasks;"
+Remove-Item Env:PGPASSWORD
+
+The database name is:
+
+nest_tasks
+6. Install project dependencies
+
+Go to the NestJS solutions directory:
+
+cd "..\Node-Express-Nest\v1\solutions\nest"
+
+Install the project dependencies:
+
+npm install
+
+Install Prisma versions compatible with Node.js 20:
+
+npm install prisma@6.19.0 @prisma/client@6.19.0
+
+Do not upgrade Prisma to a newer major version for this task when using Node.js 20.
+
+7. Configure the database connection
+
+The project uses the DATABASE_URL environment variable.
+
+Create or update:
+
+nest/.env
+
+with:
+
+DATABASE_URL="postgresql://postgres:1@localhost:5432/nest_tasks?schema=public"
+
+The Prisma configuration is located at:
+
+prisma.config.ts
+
+It points to the Task 05 Prisma files:
+
+task-05/prisma/schema.prisma
+task-05/prisma/migrations
+8. Prisma schema
+
+The Prisma schema is located at:
+
+task-05/prisma/schema.prisma
+
+It defines the Todo model:
+
+model Todo {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+9. Apply Prisma migrations
+
+Run:
+
+npx prisma migrate dev
+
+The command creates or updates the PostgreSQL table according to the Prisma schema.
+
+Verify the schema:
+
+npx prisma validate
+
+Expected result:
+
+Prisma schema loaded from task-05\prisma\schema.prisma
+The schema at task-05\prisma\schema.prisma is valid
+10. Open Prisma Studio
+
+To inspect the PostgreSQL Todo table visually:
+
+npx prisma studio
+
+Prisma Studio opens in the browser.
+
+You can use it to check that Todo records are actually stored in PostgreSQL.
+
+After finishing, stop Prisma Studio with:
+
+Ctrl+C
+
+11. Mandatory Task 05 implementation
+
+The mandatory part contains:
+
+TodoEntity
+
+Internal application model:
+
+id
+title
+description
+completed
+createdAt
+updatedAt
+TodoRepository
+
+In-memory ORM stand-in with:
+
+save()
+find()
+findOneBy()
+update()
+delete()
+TodoMapper
+
+Responsible for:
+
+CreateTodoDto → TodoEntity
+UpdateTodoDto → Entity changes
+TodoEntity → TodoResponseDto
+TodoResponseDto
+
+HTTP response model.
+
+The Date fields are converted to ISO strings.
+
+TodoService
+
+The service works with DTOs at its public boundary and uses the repository and mapper internally.
+
+TodoController
+
+Provides:
+
+POST   /todos
+GET    /todos
+GET    /todos/:id
+PUT    /todos/:id
+DELETE /todos/:id
+12. Check TypeScript
+
+Before running tests:
+
+npx tsc -p tsconfig.json --noEmit
+
+A successful check produces no output and returns to the PowerShell prompt.
+
+13. Run the mandatory tests
+
+Run:
+
+npx jest task-05.spec.ts --runInBand
+
+This verifies the mandatory Task 05 implementation.
+
+Expected result:
+
+Task 05 - ORM Integration with DTO Mapping
+
+10 passed, 10 total
+
+Note: because of the Jest filename matching, this command may also execute the Prisma test suite if its filename matches the pattern.
+
+14. Run the Prisma + PostgreSQL tests
+
+Run:
+
+npx jest prisma-task-05.spec.ts --runInBand
+
+These tests verify real PostgreSQL operations through Prisma:
+
+create;
+read;
+update;
+delete.
+
+Expected result:
+
+Task 05 - Prisma + PostgreSQL
+
+3 passed, 3 total
+15. Run the Prisma HTTP CRUD test
+
+Run:
+
+npx jest prisma-todo-http.spec.ts --runInBand
+
+This test verifies the complete HTTP flow:
+
+HTTP request
+→ ValidationPipe
+→ PrismaTodoController
+→ PrismaTodoService
+→ PrismaTodoRepository
+→ Prisma
+→ PostgreSQL
+
+It performs:
+
+POST — create Todo;
+GET — read Todo;
+PUT — update Todo;
+DELETE — delete Todo;
+GET — verify that the deleted Todo returns 404.
+
+Expected result:
+
+Task 05 - Prisma HTTP
+
+1 passed, 1 total
+16. Complete verification
+
+Run all checks:
+
+npx tsc -p tsconfig.json --noEmit
+npx jest task-05.spec.ts --runInBand
+npx jest prisma-task-05.spec.ts --runInBand
+npx jest prisma-todo-http.spec.ts --runInBand
+
+Final expected result:
+
+TypeScript: 0 errors
+
+Mandatory Task 05: 10/10 passed
+Prisma + PostgreSQL: 3/3 passed
+Prisma HTTP CRUD: 1/1 passed
+
+Total: 14/14 tests passed
+17. Useful commands
+
+Validate Prisma:
+
+npx prisma validate
+
+Check migration status:
+
+npx prisma migrate status
+
+Open Prisma Studio:
+
+npx prisma studio
+
+Check TypeScript:
+
+npx tsc -p tsconfig.json --noEmit
+
+Run mandatory tests:
+
+npx jest task-05.spec.ts --runInBand
+
+Run PostgreSQL tests:
+
+npx jest prisma-task-05.spec.ts --runInBand
+
+Run HTTP tests:
+
+npx jest prisma-todo-http.spec.ts --runInBand
+18. Result
+
+Task 05 is complete.
+
+The mandatory DTO/Entity/Mapper/Repository implementation passes all required tests.
+
+The bonus implementation additionally provides:
+
+real PostgreSQL storage;
+Prisma ORM integration;
+Prisma migrations;
+Prisma Studio;
+full Todo CRUD through HTTP.
+
+Final verification:
+
+14/14 tests passed.
+
+TypeScript compilation completes without errors.

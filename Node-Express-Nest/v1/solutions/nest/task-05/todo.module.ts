@@ -2,6 +2,10 @@ import { Module } from "@nestjs/common";
 import { TodoController } from "./todo.controller";
 import { TodoService } from "./todo.service";
 import { TodoRepository } from "./todo.repository";
+import { PrismaService } from "./prisma.service";
+import { PrismaTodoRepository } from "./prisma-todo.repository";
+import { PrismaTodoController } from "./prisma-todo.controller";
+import { PrismaTodoService } from "./prisma-todo.service";
 
 /**
  * TodoModule
@@ -14,7 +18,7 @@ import { TodoRepository } from "./todo.repository";
  * `imports: [TypeOrmModule.forFeature([TodoEntity])]`.
  */
 @Module({
-  controllers: [],
-  providers: [],
+  controllers: [TodoController, PrismaTodoController],
+  providers: [TodoService, TodoRepository, PrismaService, PrismaTodoRepository, PrismaTodoService],
 })
 export class TodoModule {}

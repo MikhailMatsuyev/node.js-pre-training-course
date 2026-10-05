@@ -51,8 +51,8 @@ export class TodoMapper {
       title: entity.title,
       description: entity.description,
       completed: entity.completed,
-      createdAt: "",
-      updatedAt: "",
+      createdAt: entity.createdAt.toISOString(),
+      updatedAt: entity.updatedAt.toISOString(),
     };
   }
 }

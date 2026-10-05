@@ -39,13 +39,18 @@ export class TodoRepository {
    * @param partial - Entity fields provided by the mapper (no id/timestamps yet).
    */
   save(partial: Omit<TodoEntity, "id" | "createdAt" | "updatedAt">): TodoEntity {
-    // TODO: implement as described above
-    return {
-      id: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    const now = new Date();
+
+    const entity: TodoEntity = {
+      id: this.nextId++,
+      createdAt: now,
+      updatedAt: now,
       ...partial,
     };
+
+    this.rows.push(entity);
+
+    return entity;
   }
 
   /**
@@ -53,7 +58,7 @@ export class TodoRepository {
    */
   find(): TodoEntity[] {
     // TODO: return this.rows
-    return [];
+    return this.rows;
   }
 
   /**
@@ -61,7 +66,7 @@ export class TodoRepository {
    */
   findOneBy(id: number): TodoEntity | undefined {
     // TODO: implement as described above
-    return undefined;
+    return this.rows.find((todo) => todo.id === id);
   }
 
   /**
@@ -74,7 +79,16 @@ export class TodoRepository {
    */
   update(id: number, changes: Partial<TodoEntity>): TodoEntity | undefined {
     // TODO: implement as described above
-    return undefined;
+    const entity = this.findOneBy(id);
+
+    if (!entity) {
+      return undefined;
+    }
+
+    Object.assign(entity, changes);
+    entity.updatedAt = new Date();
+
+    return entity;
   }
 
   /**
@@ -84,6 +98,14 @@ export class TodoRepository {
    */
   delete(id: number): boolean {
     // TODO: implement as described above
-    return false;
+    const index = this.rows.findIndex((todo) => todo.id === id);
+
+    if (index === -1) {
+      return false;
+    }
+
+    this.rows.splice(index, 1);
+
+    return true;
   }
 }
