@@ -165,3 +165,8 @@ non-empty title constraint
 successful Todo insertion
 rejection of an empty title
 data inspection using pgAdmin 4
+
+todo_app=# SELECT * FROM todos;
+ id | title | description | status | created_at
+----+-------+-------------+--------+------------
+(0 rows)
