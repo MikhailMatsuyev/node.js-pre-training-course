@@ -1,0 +1,75 @@
+################1. Database
+
+The todo_app database was created in Task 01 and was reused for this task.
+
+PostgreSQL 17.11 was used.
+
+The database was opened with:
+
+psql -U postgres -h localhost -d todo_app
+
+todo_app=# SELECT * FROM todos;
+ id | title | description | status | created_at
+----+-------+-------------+--------+------------
+(0 rows)
+
+
+################ 2. Create — Insert a New Todo
+A new Todo was inserted into the todos table using raw SQL.
+
+todo_app=# INSERT INTO todos (title, description, status)
+todo_app-# VALUES ('Buy groceries', 'Buy milk and bread', 'active');
+INSERT 0 1
+
+todo_app=# SELECT * FROM todos;
+ id |     title     |    description     | status |         created_at
+----+---------------+--------------------+--------+----------------------------
+  3 | Buy groceries | Buy milk and bread | active | 2026-10-06 15:52:19.314204
+
+
+################ 3. Read — Select All Todos
+All Todo records were retrieved from the table.
+id | title | description | status | created_at
+---+---------------+--------------------+--------+-----------
+3  | Buy groceries | Buy milk and bread | active | 2026-10-06 15:52:19.314204
+
+
+################ 4. Update — Change Todo Status
+The status of the Todo with id = 3 was changed from active to completed.
+UPDATE todos
+
+todo_app=# UPDATE todos
+todo_app-# SET status = 'completed'
+todo_app-# WHERE id = 3;
+UPDATE 1
+todo_app=# SELECT * FROM todos;
+ id |     title     |    description     |  status   |         created_at
+----+---------------+--------------------+-----------+----------------------------
+  3 | Buy groceries | Buy milk and bread | completed | 2026-10-06 15:52:19.314204
+(1 row)
+
+
+################ 5. Delete — Remove a Todo
+
+The Todo with id = 3 was deleted.
+
+todo_app=# DELETE FROM todos
+todo_app-# WHERE id = 3;
+DELETE 1
+todo_app=# SELECT * FROM todos;
+ id | title | description | status | created_at
+----+-------+-------------+--------+------------
+(0 rows)
+
+################ 6. Result
+
+All four basic CRUD operations were completed using raw SQL:
+
+Create — INSERT
+Read — SELECT
+Update — UPDATE
+Delete — DELETE
+
+No ORM or database abstraction was used.
+
+The todos table was successfully created, queried, updated, and deleted using raw SQL statements.
