@@ -1,0 +1,98 @@
+Task 03: Filtering and Sorting Todos with Raw SQL
+
+Database: PostgreSQL
+Database name: todo_app
+Table: todos
+
+Connect to the database:
+
+psql -U postgres -h localhost -d todo_app
+
+The following todos were inserted into the table to test filtering, sorting, and keyword search:
+
+INSERT INTO todos (title, description, status)
+VALUES ('Team meeting', 'Prepare slides for the meeting', 'active');
+
+INSERT INTO todos (title, description, status)
+VALUES ('Buy groceries', 'Buy milk and bread', 'completed');
+
+INSERT INTO todos (title, description, status)
+VALUES ('Read a book', 'Read a book in the evening', 'active');
+
+Each command returned:
+
+INSERT 0 1
+
+todo_app=# SELECT * FROM todos
+todo_app-# ORDER BY created_at ASC;
+ id |     title     |          description           |  status   |         created_at
+----+---------------+--------------------------------+-----------+----------------------------
+  4 | Team meeting  | Prepare slides for the meeting | active    | 2026-10-06 17:10:25.81944
+  5 | Buy groceries | Buy milk and bread             | completed | 2026-10-06 17:10:32.991022
+  6 | Read a book   | Read a book in the evening     | active    | 2026-10-06 17:10:41.794392
+(3 rows)
+
+
+
+###### 1. Filter by Status
+
+Select all active todos:
+
+SELECT * FROM todos
+WHERE status = 'active';
+
+Result:
+todo_app=# SELECT * FROM todos
+todo_app-# WHERE status = 'active';
+ id |    title     |          description           | status |         created_at
+----+--------------+--------------------------------+--------+----------------------------
+  4 | Team meeting | Prepare slides for the meeting | active | 2026-10-06 17:10:25.81944
+  6 | Read a book  | Read a book in the evening     | active | 2026-10-06 17:10:41.794392
+(2 rows)
+
+
+Select all completed todos:
+
+todo_app=# SELECT * FROM todos
+todo_app-# WHERE status = 'completed';
+ id |     title     |    description     |  status   |         created_at
+----+---------------+--------------------+-----------+----------------------------
+  5 | Buy groceries | Buy milk and bread | completed | 2026-10-06 17:10:32.991022
+(1 row)
+
+###### 2. Sort by Creation Date
+
+Sort all todos by creation date in ascending order, from oldest to newest:
+
+todo_app=# SELECT * FROM todos
+todo_app-# ORDER BY created_at ASC;
+ id |     title     |          description           |  status   |         created_at
+----+---------------+--------------------------------+-----------+----------------------------
+  4 | Team meeting  | Prepare slides for the meeting | active    | 2026-10-06 17:10:25.81944
+  5 | Buy groceries | Buy milk and bread             | completed | 2026-10-06 17:10:32.991022
+  6 | Read a book   | Read a book in the evening     | active    | 2026-10-06 17:10:41.794392
+(3 rows)
+
+
+Sort all todos by creation date in descending order, from newest to oldest:
+
+todo_app=# SELECT * FROM todos
+todo_app-# ORDER BY created_at DESC;
+ id |     title     |          description           |  status   |         created_at
+----+---------------+--------------------------------+-----------+----------------------------
+  6 | Read a book   | Read a book in the evening     | active    | 2026-10-06 17:10:41.794392
+  5 | Buy groceries | Buy milk and bread             | completed | 2026-10-06 17:10:32.991022
+  4 | Team meeting  | Prepare slides for the meeting | active    | 2026-10-06 17:10:25.81944
+(3 rows)
+
+###### 3. Search by Keyword
+
+Search for the keyword "meeting" in both the title and description:
+
+todo_app=# SELECT * FROM todos
+todo_app-# WHERE title ILIKE '%meeting%'
+todo_app-#    OR description ILIKE '%meeting%';
+ id |    title     |          description           | status |        created_at
+----+--------------+--------------------------------+--------+---------------------------
+  4 | Team meeting | Prepare slides for the meeting | active | 2026-10-06 17:10:25.81944
+(1 row)
