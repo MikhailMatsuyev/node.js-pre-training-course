@@ -1,0 +1,108 @@
+Task 04: Creating a Users Table and Linking Todos to Users with a Foreign Key
+
+Database: PostgreSQL
+Database name: todo_app
+
+Connect to the database:
+psql -U postgres -h localhost -d todo_app
+
+###### 1. Create the users Table
+
+Create the users table with an auto-incrementing primary key, non-empty name, unique and non-empty email, and creation timestamp:
+todo_app=# CREATE TABLE users (
+todo_app(#     id SERIAL PRIMARY KEY,
+todo_app(#     name TEXT NOT NULL CHECK (TRIM(name) <> ''),
+todo_app(#     email TEXT NOT NULL UNIQUE CHECK (TRIM(email) <> ''),
+todo_app(#     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+todo_app(# );
+CREATE TABLE
+todo_app=# \d users
+                                        Table "public.users"
+   Column   |            Type             | Collation | Nullable |              Default
+------------+-----------------------------+-----------+----------+-----------------------------------
+ id         | integer                     |           | not null | nextval('users_id_seq'::regclass)
+ name       | text                        |           | not null |
+ email      | text                        |           | not null |
+ created_at | timestamp without time zone |           | not null | CURRENT_TIMESTAMP
+
+
+
+
+###### 2. Add user_id to the todos Table
+
+todo_app=# ALTER TABLE todos
+todo_app-# ADD COLUMN user_id INTEGER;
+ALTER TABLE
+
+todo_app=# \d todos
+                                         Table "public.todos"
+   Column    |            Type             | Collation | Nullable |              Default
+-------------+-----------------------------+-----------+----------+-----------------------------------
+ id          | integer                     |           | not null | nextval('todos_id_seq'::regclass)
+ title       | text                        |           | not null |
+ description | text                        |           |          |
+ status      | text                        |           | not null | 'active'::text
+ created_at  | timestamp without time zone |           | not null | CURRENT_TIMESTAMP
+ user_id     | integer                     |           |          |
+
+
+###### 3. Add a Foreign Key
+
+Create a foreign key from todos.user_id to users.id:
+
+todo_app=# ALTER TABLE todos
+todo_app-# ADD CONSTRAINT todos_user_id_fkey
+todo_app-# FOREIGN KEY (user_id)
+todo_app-# REFERENCES users(id);
+ALTER TABLE
+todo_app=# \d todos
+                                         Table "public.todos"
+   Column    |            Type             | Collation | Nullable |              Default
+-------------+-----------------------------+-----------+----------+-----------------------------------
+ id          | integer                     |           | not null | nextval('todos_id_seq'::regclass)
+ title       | text                        |           | not null |
+ description | text                        |           |          |
+ status      | text                        |           | not null | 'active'::text
+ created_at  | timestamp without time zone |           | not null | CURRENT_TIMESTAMP
+ user_id     | integer                     |           |          |
+Indexes:
+    "todos_pkey" PRIMARY KEY, btree (id)
+Check constraints:
+    "todos_title_check" CHECK (TRIM(BOTH FROM title) <> ''::text)
+Foreign-key constraints:
+    "todos_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+
+
+
+###### 4. Verify the todos Table
+
+Check the final table structure:
+
+\d todos
+todo_app-# \d todos
+                                         Table "public.todos"
+   Column    |            Type             | Collation | Nullable |              Default
+-------------+-----------------------------+-----------+----------+-----------------------------------
+ id          | integer                     |           | not null | nextval('todos_id_seq'::regclass)
+ title       | text                        |           | not null |
+ description | text                        |           |          |
+ status      | text                        |           | not null | 'active'::text
+ created_at  | timestamp without time zone |           | not null | CURRENT_TIMESTAMP
+ user_id     | integer                     |           |          |
+Indexes:
+    "todos_pkey" PRIMARY KEY, btree (id)
+Check constraints:
+    "todos_title_check" CHECK (TRIM(BOTH FROM title) <> ''::text)
+Foreign-key constraints:
+    "todos_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+
+
+
+
+###### Brief Description ######
+
+In this task, a users table was created using raw SQL. The todos table was then modified by adding a user_id column and a foreign key constraint.
+
+The foreign key establishes a relationship between users and todos, allowing each todo to be associated with a user.
+
+No ORM or additional libraries were used.
