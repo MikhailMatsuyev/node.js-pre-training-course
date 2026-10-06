@@ -132,7 +132,7 @@ status: active
 created_at: automatically generated timestamp
 
 
-########### 8. Note about the users table
+########### 9. Note about the users table
 
 The original task description mentions a users table and a user_id foreign key.
 
