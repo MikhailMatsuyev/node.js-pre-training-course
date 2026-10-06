@@ -1,0 +1,167 @@
+Task 01 — SQL Schema
+########### 1. Database
+
+PostgreSQL 17.11 was already installed on the system (in previous Nest tasks).
+
+PostgreSQL version check:
+
+psql (PostgreSQL) 17.11
+
+A new database named todo_app was created.
+
+Command:
+
+$env:PGPASSWORD="1"
+psql -U postgres -h localhost -c "CREATE DATABASE todo_app;"
+Remove-Item Env:PGPASSWORD
+
+Result:
+
+CREATE DATABASE
+
+
+########### 2. Connect to the database
+
+Command:
+
+psql -U postgres -h localhost -d todo_app
+
+The database was successfully opened:
+
+todo_app=#
+
+
+########### 3. Create the todos table
+
+The todos table was created using raw SQL.
+
+CREATE TABLE todos (
+    id SERIAL PRIMARY KEY,
+    title TEXT NOT NULL CHECK (TRIM(title) <> ''),
+    description TEXT,
+    status TEXT NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+Result:
+
+CREATE TABLE
+
+The table contains:
+
+id — auto-incrementing integer primary key.
+title — required text field; empty titles are not allowed.
+description — optional text field.
+status — required text field with active as the default value.
+created_at — timestamp automatically set to the current time.
+
+
+########### 4. Verify the table structure
+
+Command:
+
+\d todos
+
+The database confirmed the following structure:
+
+id          integer                     not null
+title       text                        not null
+description text
+status      text                        not null
+created_at  timestamp without time zone not null
+
+The table has a primary key on id and a check constraint preventing an empty title.
+
+########### 5. Insert a test Todo
+
+Command:
+
+INSERT INTO todos (title, description, status)
+VALUES ('Learn SQL', 'Complete DB Task 01', 'active');
+
+Result:
+
+INSERT 0 1
+########### 6. Verify the inserted data
+
+Command:
+
+SELECT * FROM todos;
+
+Result:
+
+ id |   title   |     description     | status |         created_at
+----+-----------+---------------------+--------+----------------------------
+  1 | Learn SQL | Complete DB Task 01 | active | 2026-10-06 14:53:39.211101
+
+The id and created_at values were generated automatically by PostgreSQL.
+
+########### 7. Test the title constraint
+
+An empty title was tested:
+
+INSERT INTO todos (title, description, status)
+VALUES ('', 'Test empty title', 'active');
+
+PostgreSQL rejected the record:
+
+ERROR: new row in relation "todos" violates check constraint "todos_title_check"
+
+This confirms that the title field cannot contain an empty string.
+
+########### 8. Verify the data using pgAdmin
+
+pgAdmin 4 was installed using WinGet:
+
+winget install --id PostgreSQL.pgAdmin --exact
+
+The todo_app database was opened in pgAdmin.
+
+The todos table was inspected through:
+
+Databases → todo_app → Schemas → public → Tables → todos
+
+The table structure and inserted data were verified using the graphical interface.
+
+The inserted record was:
+
+id: 1
+title: Learn SQL
+description: Complete DB Task 01
+status: active
+created_at: automatically generated timestamp
+
+
+########### 8. Note about the users table
+
+The original task description mentions a users table and a user_id foreign key.
+
+However, the course author clarified that for this task only the todos table should be created.
+
+Therefore, the following were intentionally not added:
+
+users table
+user_id column
+foreign key constraint
+
+The users table will be introduced in a later task.
+
+########### 9. Result
+
+Task 01 was completed using raw SQL and PostgreSQL.
+
+Created:
+
+database: todo_app
+table: todos
+
+Verified:
+
+table structure
+primary key
+auto-incrementing ID
+automatic creation timestamp
+non-empty title constraint
+successful Todo insertion
+rejection of an empty title
+data inspection using pgAdmin 4
