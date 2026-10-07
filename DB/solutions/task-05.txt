@@ -1,0 +1,113 @@
+Task 05: Aggregation and Grouping in SQL
+
+Database: PostgreSQL
+Database name: todo_app
+Table: users and todos
+
+Connect to the database:
+psql -U postgres -h localhost -d todo_app
+
+Three users were inserted into the users table:
+
+INSERT INTO users (name, email)
+VALUES ('Mikhail', '[mikhail@example.com](mailto:mikhail@example.com)');
+
+INSERT INTO users (name, email)
+VALUES ('Anna', '[anna@example.com](mailto:anna@example.com)');
+
+INSERT INTO users (name, email)
+VALUES ('John', '[john@example.com](mailto:john@example.com)');
+
+Check the users:
+
+SELECT * FROM users;
+
+ id |  name   |        email        |         created_at
+----+---------+---------------------+----------------------------
+  1 | Anna    | anna@example.com    | 2026-10-07 17:03:57.17489
+  2 | John    | john@example.com    | 2026-10-07 17:03:57.634981
+  3 | Mikhail | mikhail@example.com | 2026-10-07 17:04:08.914243
+(3 rows)
+```
+
+Four todos were created and assigned to Anna and John. Mikhail was intentionally left without todos to test the third requirement:
+
+INSERT INTO todos (title, description, status, user_id)
+VALUES
+('Anna task 1', 'Prepare report', 'active', 1),
+('Anna task 2', 'Send email', 'completed', 1),
+('John task 1', 'Fix bug', 'active', 2),
+('John task 2', 'Review code', 'active', 2);
+
+Check todos assigned to users:
+SELECT * FROM todos
+WHERE user_id IS NOT NULL;
+
+ id |    title    |  description   |  status   |         created_at         | user_id
+----+-------------+----------------+-----------+----------------------------+---------
+  7 | Anna task 1 | Prepare report | active    | 2026-10-07 17:05:37.644508 |       1
+  8 | Anna task 2 | Send email     | completed | 2026-10-07 17:05:37.644508 |       1
+  9 | John task 1 | Fix bug        | active    | 2026-10-07 17:05:37.644508 |       2
+ 10 | John task 2 | Review code    | active    | 2026-10-07 17:05:37.644508 |       2
+(4 rows)
+
+## 1. Count Todos by Status
+
+SELECT status, COUNT(*) AS todo_count
+FROM todos
+GROUP BY status;
+
+  status   | todo_count
+-----------+------------
+ active    |          5
+ completed |          2
+(2 rows)
+
+The query groups todos by their status and counts the number of records in each group.
+## 2. Count Todos per User
+
+Query:
+SELECT
+users.name,
+COUNT(todos.id) AS todo_count
+FROM users
+JOIN todos ON todos.user_id = users.id
+GROUP BY users.id, users.name;
+
+Result:
+ name | todo_count
+------+-----------
+ John |          2
+ Anna |          2
+(2 rows)
+
+The query joins users with todos and counts the todos assigned to each user.
+Users without todos are not included because an INNER JOIN is used.
+
+## 3. Find Users with No Todos
+
+Query:
+
+SELECT
+users.name,
+users.email
+FROM users
+LEFT JOIN todos ON todos.user_id = users.id
+WHERE todos.id IS NULL;
+
+  name   |        email
+---------+---------------------
+ Mikhail | mikhail@example.com
+(1 row)
+
+## Brief Description
+In this task, raw SQL aggregation and grouping were used to generate statistics for the todo-list database.
+The following SQL features were used:
+
+* COUNT() for counting records
+* GROUP BY for grouping records
+* JOIN for connecting users with their todos
+* LEFT JOIN for finding users without todos
+* WHERE for filtering the result
+
+No ORM or additional libraries were used.
