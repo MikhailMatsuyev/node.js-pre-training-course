@@ -1,0 +1,46 @@
+Task 06: Indexes and Query Optimization
+
+Database: PostgreSQL
+Database name: todo_app
+Table: todos
+psql -U postgres -h localhost -d todo_app
+
+1. Create an Index
+
+CREATE INDEX idx_todos_status
+ON todos(status);
+
+Result:
+CREATE INDEX
+
+The index idx_todos_status was successfully created.
+
+2. Analyze Query Performance
+
+EXPLAIN ANALYZE
+SELECT * FROM todos
+WHERE status = 'active';
+
+Result:
+
+Seq Scan on todos  (cost=0.00..1.09 rows=1 width=112) (actual time=0.015..0.016 rows=5 loops=1)
+  Filter: (status = 'active'::text)
+  Rows Removed by Filter: 2
+
+Planning Time: 0.771 ms
+Execution Time: 0.053 ms
+
+The execution plan shows:
+
+Seq Scan on todos
+
+This means that PostgreSQL performed a sequential scan of the entire todos table instead of using the idx_todos_status index.
+
+The index was created successfully, but PostgreSQL decided that using it would not be more efficient for this query.
+
+The reason is the small size of the todos table. At the moment, the table contains only a few rows. For a very small table, reading the entire table sequentially can be cheaper and faster than using an index, because an index lookup also has its own overhead.
+
+
+Brief Description
+In this task, an index was created on the status column of the todos table and query execution was analyzed using EXPLAIN ANALYZE.
+The index was created successfully. PostgreSQL selected a sequential scan for the tested query because the table is currently very small, making a full table scan cheaper than an index lookup.
