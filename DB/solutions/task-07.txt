@@ -1,0 +1,116 @@
+Task 07: ORM Setup
+ORM
+
+Prisma 6.19.0 was selected as the ORM for the PostgreSQL Todo application.
+
+Prisma was configured separately in the DB directory.
+
+Database connection
+
+The existing PostgreSQL database todo_app was connected through .env:
+
+DATABASE_URL="postgresql://postgres:1@localhost:5432/todo_app"
+
+The Prisma schema is located at:
+
+prisma/schema.prisma
+
+The existing database structure was introspected using:
+
+npx prisma db pull
+
+Prisma detected the existing users and todos tables.
+
+Prisma models
+
+The schema defines two related models:
+
+User — application users
+Todo — todo items belonging to a user
+
+The existing PostgreSQL table names are preserved using @@map("users") and @@map("todos").
+
+The relationship is:
+
+User 1 ──── * Todo
+
+The existing index on todos.status and the foreign key todos.user_id → users.id are also represented in the Prisma schema.
+
+Migrations
+
+Because the database and its tables had already been created during Tasks 01–06 using raw SQL, a baseline migration was created instead of recreating the existing tables.
+
+The baseline migration was marked as already applied:
+
+npx prisma migrate resolve --applied 00000000000000_init
+
+Migration status:
+
+1 migration found in prisma/migrations
+Database schema is up to date!
+
+No database reset was performed and existing data was preserved.
+
+Prisma Client
+
+Prisma Client was generated with:
+
+npx prisma generate
+Seed
+
+A seed.js script was created using Prisma Client.
+
+The seed creates:
+
+2 users
+3 todos for each user
+active and completed todo statuses
+
+The seed was executed with:
+
+node seed.js
+
+The result was verified through Prisma Client:
+
+Alice → 3 todos
+Bob   → 3 todos
+
+todo_app=# SELECT
+todo_app-#     users.name,
+todo_app-#     users.email,
+todo_app-#     COUNT(todos.id) AS todo_count
+todo_app-# FROM users
+todo_app-# LEFT JOIN todos ON todos.user_id = users.id
+todo_app-# GROUP BY users.id, users.name, users.email
+todo_app-# ORDER BY users.id;
+  name   |         email          | todo_count
+---------+------------------------+------------
+ Anna    | anna@example.com       |          2
+ John    | john@example.com       |          2
+ Mikhail | mikhail@example.com    |          0
+ Alice   | alice.seed@example.com |          3
+ Bob     | bob.seed@example.com   |          3
+
+todo_app=# SELECT
+todo_app-#     u.name AS user_name,
+todo_app-#     u.email,
+todo_app-#     t.id AS todo_id,
+todo_app-#     t.title,
+todo_app-#     t.description,
+todo_app-#     t.status
+todo_app-# FROM users u
+todo_app-# JOIN todos t ON t.user_id = u.id
+todo_app-# WHERE u.email IN (
+todo_app(#     'alice.seed@example.com',
+todo_app(#     'bob.seed@example.com'
+todo_app(# )
+todo_app-# ORDER BY u.id, t.id;
+ user_name |         email          | todo_id |    title     |   description    |  status
+-----------+------------------------+---------+--------------+------------------+-----------
+ Alice     | alice.seed@example.com |      11 | Alice task 1 | First seed task  | active
+ Alice     | alice.seed@example.com |      12 | Alice task 2 | Second seed task | active
+ Alice     | alice.seed@example.com |      13 | Alice task 3 | Third seed task  | completed
+ Bob       | bob.seed@example.com   |      14 | Bob task 1   | First seed task  | active
+ Bob       | bob.seed@example.com   |      15 | Bob task 2   | Second seed task | active
+ Bob       | bob.seed@example.com   |      16 | Bob task 3   | Third seed task  | completed
+
