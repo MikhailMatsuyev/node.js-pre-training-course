@@ -1,0 +1,38 @@
+Task 08: ORM CRUD
+
+Prisma 6.19.0 was used to perform CRUD operations on the existing PostgreSQL database.
+
+
+CRUD operations were implemented in:
+solutions/task-08.js
+
+The script performs all operations sequentially:
+
+Create — creates a new Todo with title, description, status and user reference.
+Read — retrieves the created Todo by its ID.
+Update — changes the Todo status from active to completed.
+Delete — deletes the Todo by its ID.
+Read after Delete — verifies that the deleted Todo no longer exists.
+
+How to run
+
+From the DB/solutions directory:
+node task-08.js
+
+Result
+The script was executed successfully.
+
+The console output confirmed:
+
+Todo id: 18 was created.
+The created Todo was successfully read.
+Its status was changed from active to completed.
+Todo 18 was successfully deleted.
+A subsequent read returned null, confirming that the Todo no longer exists.
+Issues
+
+No blocking issues were encountered during the final implementation.
+
+Conclusion
+
+Task 08 was completed successfully. All required CRUD operations were implemented using Prisma Client and verified through a single executable script.
