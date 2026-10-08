@@ -1,0 +1,128 @@
+Task 09: SQL Triggers and Audit Log
+
+
+An audit_log table was created in the existing PostgreSQL todo_app database.
+
+The table stores:
+
+id — auto-incrementing primary key
+todo_id — ID of the changed Todo
+action — type of action (UPDATE or DELETE)
+changed_at — timestamp of the change
+
+Two PostgreSQL triggers were implemented:
+
+todos_update_audit — automatically creates an UPDATE record in audit_log when a Todo is updated.
+todos_delete_audit — automatically creates a DELETE record in audit_log when a Todo is deleted.
+
+Separate trigger functions were created for both operations.
+
+
+
+************** UPDATE trigger ************************
+The UPDATE trigger was tested by changing Todo id = 11.
+
+todo_app=# CREATE TABLE audit_log (
+todo_app(#     id SERIAL PRIMARY KEY,
+todo_app(#     todo_id INTEGER NOT NULL,
+todo_app(#     action TEXT NOT NULL,
+todo_app(#     changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+todo_app(# );
+CREATE TABLE
+todo_app=# \d audit_log
+                                        Table "public.audit_log"
+   Column   |            Type             | Collation | Nullable |                Default
+------------+-----------------------------+-----------+----------+---------------------------------------
+ id         | integer                     |           | not null | nextval('audit_log_id_seq'::regclass)
+ todo_id    | integer                     |           | not null |
+ action     | text                        |           | not null |
+ changed_at | timestamp without time zone |           | not null | CURRENT_TIMESTAMP
+Indexes:
+    "audit_log_pkey" PRIMARY KEY, btree (id)
+
+
+todo_app=# CREATE OR REPLACE FUNCTION log_todo_update()
+todo_app-# RETURNS TRIGGER AS $$
+todo_app$# BEGIN
+todo_app$#     INSERT INTO audit_log (todo_id, action)
+todo_app$#     VALUES (NEW.id, 'UPDATE');
+todo_app$#
+todo_app$#     RETURN NEW;
+todo_app$# END;
+todo_app$# $$ LANGUAGE plpgsql;
+CREATE FUNCTION
+
+todo_app=# CREATE TRIGGER todos_update_audit
+todo_app-# AFTER UPDATE ON todos
+todo_app-# FOR EACH ROW
+todo_app-# EXECUTE FUNCTION log_todo_update();
+CREATE TRIGGER
+
+todo_app=# SELECT id, title, status
+todo_app-# FROM todos
+todo_app-# WHERE id = 11;
+ id |    title     | status
+----+--------------+--------
+ 11 | Alice task 1 | active
+(1 row)
+
+
+todo_app=# UPDATE todos
+todo_app-# SET status = 'completed'
+todo_app-# WHERE id = 11;
+UPDATE 1
+todo_app=# SELECT *
+todo_app-# FROM audit_log
+todo_app-# ORDER BY id;
+ id | todo_id | action |         changed_at
+----+---------+--------+----------------------------
+  1 |      11 | UPDATE | 2026-10-08 13:17:31.598088
+(1 row)
+
+
+************** DELETE trigger *************************
+The DELETE trigger was tested by deleting Todo id = 12.
+
+todo_app=# CREATE OR REPLACE FUNCTION log_todo_delete()
+todo_app-# RETURNS TRIGGER AS $$
+todo_app$# BEGIN
+todo_app$#     INSERT INTO audit_log (todo_id, action)
+todo_app$#     VALUES (OLD.id, 'DELETE');
+todo_app$#
+todo_app$#     RETURN OLD;
+todo_app$# END;
+todo_app$# $$ LANGUAGE plpgsql;
+CREATE FUNCTION
+
+todo_app=# CREATE TRIGGER todos_delete_audit
+todo_app-# AFTER DELETE ON todos
+todo_app-# FOR EACH ROW
+todo_app-# EXECUTE FUNCTION log_todo_delete();
+CREATE TRIGGER
+
+todo_app=# SELECT id, title, status
+todo_app-# FROM todos
+todo_app-# WHERE id = 12;
+ id |    title     | status
+----+--------------+--------
+ 12 | Alice task 2 | active
+(1 row)
+
+
+todo_app=# DELETE FROM todos
+todo_app-# WHERE id = 12;
+DELETE 1
+
+
+todo_app=# SELECT *
+todo_app-# FROM audit_log
+todo_app-# ORDER BY id;
+ id | todo_id | action |         changed_at
+----+---------+--------+----------------------------
+  1 |      11 | UPDATE | 2026-10-08 13:17:31.598088
+  2 |      12 | DELETE | 2026-10-08 13:21:35.430387
+(2 rows)
+
+
+This confirmed that the triggers automatically recorded changes to the todos table.
+One seed Todo (id = 12) was deleted during the DELETE trigger test.
