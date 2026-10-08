@@ -1,0 +1,81 @@
+# Task 10: Redis Caching
+
+Redis was used to cache a user's Todo list.
+
+The Node.js Redis client was installed and configured to connect to the local Redis-compatible Memurai server:
+
+redis://localhost:6379
+
+Prisma was used to retrieve Todo data from the existing PostgreSQL database.
+
+The cache key format is:
+
+todos:user:{userId}
+
+For example:
+
+todos:user:4
+
+## Cache hit and cache miss
+
+When a user requests their Todo list, the application first checks Redis.
+
+If the cache key exists, the data is returned directly from Redis:
+
+CACHE HIT
+
+If the cache key does not exist, the application retrieves the Todo list from PostgreSQL using Prisma:
+
+CACHE MISS
+
+The result is then stored in Redis with a TTL of 300 seconds.
+
+## Cache invalidation
+
+The cache is manually invalidated after Todo changes.
+
+The following operations delete the user's cached Todo list:
+
+- CREATE Todo
+- UPDATE Todo
+- DELETE Todo
+
+After invalidation, the next request produces CACHE MISS and retrieves the updated data from PostgreSQL.
+
+## TTL
+
+The Redis cache uses a TTL of 300 seconds (5 minutes).
+
+TTL functionality was also verified separately using a 10-second test. After the TTL expired, the cached value was automatically removed and the next request resulted in CACHE MISS.
+
+## Verification
+
+The main script was executed with:
+
+node task-10.js
+
+The following behavior was verified:
+
+FIRST GET:
+CACHE MISS
+
+SECOND GET:
+CACHE HIT
+
+CREATE:
+CACHE INVALIDATED
+
+UPDATE:
+CACHE INVALIDATED
+
+DELETE:
+CACHE INVALIDATED
+
+GET AFTER INVALIDATION:
+CACHE MISS
+
+This confirms that Redis caching and manual cache invalidation work correctly.
+
+## Issues
+
+Redis was installed using Memurai Developer Edition because Redis is not natively distributed for Windows.
