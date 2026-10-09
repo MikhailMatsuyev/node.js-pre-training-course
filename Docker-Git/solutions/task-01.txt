@@ -1,0 +1,88 @@
+Task 01 - Git Fundamentals
+
+1. Git commands and explanations
+
+git init
+Initializes a new Git repository in the current directory.
+
+PS ..\node.js-pre-training-course\Docker-Git\my-first-repo> git init
+Initialized empty Git repository in ../node.js-pre-training-course/Docker-Git/my-first-repo/.git/
+
+git config --local user.name "Mikhail Matsuyev"
+Sets the author name for this repository only.
+
+git config --local user.email "k501@yandex.ru"
+Sets the author email for this repository only.
+
+PS ..\node.js-pre-training-course\Docker-Git\my-first-repo> git config --local --list
+core.repositoryformatversion=0
+core.filemode=false
+core.bare=false
+core.logallrefupdates=true
+core.symlinks=false
+core.ignorecase=true
+user.name=Mikhail Matsuyev
+user.email=k501@yandex.ru
+
+git status
+Displays the current repository state and staged or untracked files.
+
+git add .gitignore
+Adds only .gitignore to the staging area.
+
+git commit -m "Add gitignore"
+Creates the first commit containing only .gitignore.
+
+PS ..\node.js-pre-training-course\Docker-Git\my-first-repo> git commit -m "Add gitignore"
+[master (root-commit) dbf7b49] Add gitignore
+ 1 file changed, 3 insertions(+)
+ create mode 100644 .gitignore
+
+
+git add README.md package.json
+Adds README.md and package.json to the staging area.
+
+git commit -m "Add project files"
+Creates the second commit containing README.md and package.json.
+
+git log --oneline
+Displays the commit history in a compact format.
+
+git status
+Verifies the final repository state.
+
+PS ..\node.js-pre-training-course\Docker-Git\my-first-repo> git status
+On branch master
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   README.md
+        new file:   package.json
+
+
+2. Output of git log --oneline
+
+920e043 (HEAD -> master) Add project files
+dbf7b49 Add gitignore
+
+
+PS ..\node.js-pre-training-course\Docker-Git\my-first-repo> git log
+commit 920e04384e9055507464a7be9c4c8555263fc1b9 (HEAD -> master)
+Author: Mikhail Matsuyev <k501@yandex.ru>
+Date:   Fri Oct 9 14:59:43 2026 +0300
+
+    Add project files
+
+commit dbf7b4984808bc5555728da5f11f5f2e1e16ccb2
+Author: Mikhail Matsuyev <k501@yandex.ru>
+Date:   Fri Oct 9 14:57:48 2026 +0300
+
+
+
+
+
+3. Final result
+
+The repository was initialized successfully.
+The first commit contains only .gitignore.
+The second commit contains README.md and package.json.
+
