@@ -1,0 +1,89 @@
+Task 02 - Creating Branches and Basic Merge Operations
+
+1. Commands used
+
+git branch -M main
+Renamed the initial branch from master to main.
+
+git checkout -b feature/add-scripts
+Switched to a new branch 'feature/add-scripts'
+Created the feature/add-scripts branch and switched to it.
+
+git add package.json
+Added package.json to the staging area.
+
+git commit -m "Add npm scripts"
+[feature/add-scripts 80f0be8] Add npm scripts
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+Committed the new npm scripts on the feature branch.
+
+git switch main
+Switched back to the main branch.
+
+git checkout -b feature/add-dependencies
+Switched to a new branch 'feature/add-dependencies'
+Created a second feature branch from main.
+
+git checkout main
+Switched to branch 'main'
+Switched to main before merging.
+
+git merge feature/add-scripts
+Updating 920e043..80f0be8
+Fast-forward
+ package.json | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+Merged feature/add-scripts into main using a fast-forward merge.
+
+git branch -d feature/add-scripts
+Deleted branch feature/add-scripts (was 80f0be8).
+Deleted the merged feature branch.
+
+git branch -a
+  feature/add-dependencies
+* main
+Listed local and remote-tracking branches.
+
+git log --graph --oneline
+* 80f0be8 (HEAD -> main) Add npm scripts
+* 920e043 (feature/add-dependencies) Add project files
+* dbf7b49 Add gitignore
+Displayed the commit history as a graph.
+
+git status
+On branch main
+nothing to commit, working tree clean
+Checked the final working tree state.
+
+2. Branch list at different stages
+
+After creating feature/add-scripts:
+  feature/add-scripts
+* main
+
+After creating feature/add-dependencies:
+* feature/add-dependencies
+  feature/add-scripts
+  main
+
+After merging and deleting feature/add-scripts:
+  feature/add-dependencies
+* main
+
+3. Output of git log --graph --oneline
+
+* 80f0be8 (HEAD -> main) Add npm scripts
+* 920e043 (feature/add-dependencies) Add project files
+* dbf7b49 Add gitignore
+
+4. Merge result
+
+The feature/add-scripts branch was merged into main using a fast-forward merge.
+The merge did not require a separate merge commit.
+The feature/add-scripts branch was deleted after merging.
+The feature/add-dependencies branch remains based on the original main commit.
+
+5. Final status
+
+On branch main
+nothing to commit, working tree clean
