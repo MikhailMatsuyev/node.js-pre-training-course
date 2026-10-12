@@ -1,0 +1,21 @@
+{
+  "name": "typescript-docker-app",
+  "version": "1.0.0",
+  "description": "TypeScript Express app for Docker multi-stage build",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}
