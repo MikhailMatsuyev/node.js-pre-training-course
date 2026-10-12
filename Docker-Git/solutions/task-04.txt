@@ -1,0 +1,38 @@
+Task 04: Simulating and Resolving Merge Conflicts
+
+1. Git commands used
+
+git checkout -b feature/update-readme-v1
+git add README.md
+git commit -m "Update README title to v1"
+
+git checkout main
+git checkout -b feature/update-readme-v2
+git add README.md
+git commit -m "Update README title to v2"
+
+git checkout main
+git merge feature/update-readme-v1
+git merge feature/update-readme-v2
+
+2. Conflict markers
+
+The conflict in README.md was:
+
+<<<<<<< HEAD
+п»ї# My Awesome Project v1
+=======
+п»ї# My Super Project v2
+>>>>>>> feature/update-readme-v2
+
+3. Conflict resolution
+
+The conflicting titles were combined into one title:
+
+# My Awesome Super Project v1 & v2
+
+The rest of the README content was preserved.
+
+4. Final merge commit
+
+4c03c96 Resolve README merge conflict
