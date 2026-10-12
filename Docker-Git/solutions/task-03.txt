@@ -1,0 +1,189 @@
+Task 03: Create and Run Your First Docker Container
+
+1. Dockerfile
+
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY app.js ./
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
+
+
+2. package.json
+
+{
+  "name": "docker-node-app",
+  "version": "1.0.0",
+  "description": "Simple Node.js application for Docker",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}
+
+
+3. app.js
+
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Hello Docker!');
+});
+
+server.listen(3000, () => {
+  console.log('Server running on port 3000');
+});
+
+
+4. Docker commands
+
+Build image:
+
+docker build -t my-node-app:v1 .
+
+Run container:
+
+docker run -d --name my-node-app -p 3000:3000 my-node-app:v1
+
+List running containers:
+
+docker ps
+
+Inspect container:
+
+docker inspect my-node-app
+
+Test application:
+
+(Invoke-WebRequest http://localhost:3000).Content
+
+View logs:
+
+docker logs my-node-app
+
+Stop container:
+
+docker stop my-node-app
+
+Remove container:
+
+docker rm my-node-app
+
+List images:
+
+docker images
+
+
+5. docker images
+
+After building the image:
+
+IMAGE            ID             DISK USAGE   CONTENT SIZE   EXTRA
+my-node-app:v1   8683a25dab20   245MB         62.2MB
+
+
+6. docker ps
+
+While the container was running:
+
+CONTAINER ID   IMAGE            COMMAND                  STATUS
+e7b4510bdb11   my-node-app:v1   "docker-entrypoint.s…"   Up 19 seconds
+
+Port mapping:
+
+0.0.0.0:3000->3000/tcp
+[::]:3000->3000/tcp
+
+Container name:
+
+my-node-app
+
+
+7. docker inspect
+
+Important values from docker inspect:
+
+Container ID:
+e7b4510bdb112e3a16e42d8804baec97e8a84657ef52358587c6ba7a2d53b3b5
+
+Name:
+/my-node-app
+
+Status:
+running
+
+Image:
+my-node-app:v1
+
+Working directory:
+/app
+
+Node.js version:
+24.21.0
+
+Exposed port:
+3000/tcp
+
+Host port:
+3000
+
+Network:
+bridge
+
+Container IP:
+172.17.0.2
+
+Restart count:
+0
+
+
+8. Application response
+
+Command:
+
+(Invoke-WebRequest http://localhost:3000).Content
+
+Response:
+
+Hello Docker!
+
+
+9. Container logs
+
+Command:
+
+docker logs my-node-app
+
+Output:
+
+> docker-node-app@1.0.0 start
+> node app.js
+
+Server running on port 3000
+
+
+10. Final state
+
+The container was successfully stopped and removed.
+
+docker ps:
+
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+No running containers.
+
+The Docker image remains available:
+
+my-node-app:v1
