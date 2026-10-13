@@ -1,0 +1,254 @@
+Task 08: Simulating Team Git Workflow with Multiple Remotes
+
+Task goal:
+Practice a team Git workflow with two remotes:
+- origin — simulated personal fork
+- upstream — simulated company repository
+
+1. Remote configuration
+
+Two local bare repositories were created to simulate remote repositories:
+
+- company-repo.git — company repository
+- fork-repo.git — personal fork
+
+Remotes were configured with:
+
+git remote add upstream ..\company-repo.git
+git remote add origin ..\fork-repo.git
+
+Remote configuration:
+
+origin  ..\fork-repo.git (fetch)
+origin  ..\fork-repo.git (push)
+upstream        ..\company-repo.git (fetch)
+upstream        ..\company-repo.git (push)
+
+The usual convention is:
+
+origin   -> personal fork
+upstream -> main/company repository
+
+
+2. Feature branch workflow
+
+A feature branch was created:
+
+git checkout -b feature/user-profile
+
+Feature implementation was split into several commits.
+
+First commit:
+
+git add userProfile.js
+git commit -m "Add user profile module"
+
+Commit:
+2c92fac Add user profile module
+
+Second commit:
+
+git add userProfile.test.js
+git commit -m "Add user profile tests"
+
+Commit:
+659ec00 Add user profile tests
+
+Third commit:
+
+git add USER_PROFILE.md
+git commit -m "Document user profile module"
+
+Commit:
+35eec95 Document user profile module
+
+The feature branch was pushed to the fork:
+
+git push -u origin feature/user-profile
+
+
+3. Pull request simulation
+
+The pull request was simulated by merging the feature branch into main:
+
+git checkout main
+git merge --no-ff feature/user-profile -m "Merge user profile feature"
+
+Merge commit:
+
+a26c36f Merge user profile feature
+
+A review comment was simulated by adding validation to userProfile.js.
+
+The change was committed as:
+
+82c759a Address review feedback
+
+
+4. Synchronizing with upstream
+
+First, changes from the company repository were fetched:
+
+git fetch upstream
+
+Remote branches were checked with:
+
+git branch -r
+
+The upstream remote contained:
+
+upstream/main
+
+
+A new change was then added to the simulated company repository.
+
+After fetching upstream again, the new commit was checked with:
+
+git log --oneline main..upstream/main
+
+The new upstream commit was:
+
+3bf7f3a Update upstream workflow documentation
+
+
+The local main branch was synchronized with upstream:
+
+git merge upstream/main
+
+Git created a merge commit using the ort strategy.
+
+The synchronized main branch was then pushed to the personal fork:
+
+git push origin main
+
+
+5. Updating a feature branch after review
+
+The feature branch was checked out:
+
+git checkout feature/user-profile
+
+A documentation change was added:
+
+Add-Content USER_PROFILE.md "Includes basic user validation."
+
+Instead of creating another commit, the previous documentation commit was amended:
+
+git add USER_PROFILE.md
+git commit --amend --no-edit
+
+The original commit:
+
+35eec95 Document user profile module
+
+was replaced with:
+
+e9cd6c0 Document user profile module
+
+
+6. Safe force push
+
+Because the feature branch had already been pushed to origin, rewriting the commit history changed its commit SHA.
+
+The updated history was pushed with:
+
+git push --force-with-lease origin feature/user-profile
+
+Result:
+
+35eec95...e9cd6c0 feature/user-profile -> feature/user-profile (forced update)
+
+The --force-with-lease option is safer than --force because Git checks that the remote branch still points to the commit we expect before replacing its history.
+
+It helps prevent accidentally overwriting changes pushed by another developer.
+
+
+7. Strategy for handling upstream changes
+
+The general workflow for synchronizing with the company repository is:
+
+1. Fetch changes:
+
+git fetch upstream
+
+2. Check what changed:
+
+git log --oneline main..upstream/main
+
+3. Integrate upstream changes:
+
+git merge upstream/main
+
+4. Push the synchronized branch to the personal fork:
+
+git push origin main
+
+Fetching first is useful because it updates the local remote-tracking branches without changing the working branch.
+
+Changes should be reviewed before merging them into local main.
+
+
+8. Commit message best practices
+
+During the task the following commit messages were used:
+
+Add user profile module
+Add user profile tests
+Document user profile module
+Merge user profile feature
+Address review feedback
+Update upstream workflow documentation
+
+Good commit messages should:
+
+- briefly describe what changed;
+- start with a verb;
+- describe one logical change;
+- avoid unnecessary details;
+- make the project history understandable.
+
+Examples:
+
+Good:
+Add user profile tests
+
+Good:
+Address review feedback
+
+Bad:
+Changes
+
+Bad:
+Fix stuff
+
+Bad:
+Update
+
+
+9. Main Git concepts demonstrated
+
+origin:
+The developer's personal fork.
+
+upstream:
+The main/company repository.
+
+feature branch:
+An isolated branch used to develop a feature before integrating it into main.
+
+git fetch:
+Downloads information about remote changes without changing the current branch.
+
+git merge:
+Integrates another branch into the current branch.
+
+git commit --amend:
+Rewrites the most recent commit.
+
+git push --force-with-lease:
+Safely updates a remote branch after rewriting its history, provided the remote branch has not changed unexpectedly.
+
+
+Conclusion:
+
+The task demonstrated a realistic Git workflow with a personal fork and an upstream company repository. The workflow included feature development, multiple commits, pull request simulation, review changes, synchronization with upstream, commit amendment, and safe force-pushing with --force-with-lease.
