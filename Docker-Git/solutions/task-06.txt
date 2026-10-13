@@ -1,0 +1,156 @@
+Task 06: Git Rebase and Clean History Management
+
+1. Creating the feature branch and commits
+
+Created branch:
+
+git checkout -b feature/user-authentication
+
+Created four functional commits and one intentional typo-fix commit:
+
+64314de Add authentication module
+84b4735 Update dependencies for authentication
+1635a55 Add authentication middleware
+8158b0d Fix typo in authentication message
+9b1f210 Add authentication tests
+
+
+2. Interactive rebase
+
+Started interactive rebase:
+
+git rebase -i HEAD~5
+
+Changed:
+
+pick 8158b0d Fix typo in authentication message
+
+to:
+
+fixup 8158b0d Fix typo in authentication message
+
+The typo-fix commit was combined with the previous authentication middleware commit.
+
+Before rebase:
+
+9b1f210 Add authentication tests
+8158b0d Fix typo in authentication message
+1635a55 Add authentication middleware
+84b4735 Update dependencies for authentication
+64314de Add authentication module
+
+After interactive rebase:
+
+86cfd40 Add authentication tests
+401ba13 Add authentication middleware
+84b4735 Update dependencies for authentication
+64314de Add authentication module
+
+The typo-fix commit no longer exists as a separate commit.
+
+
+3. Rebase onto updated main
+
+A new commit was created on main to simulate another developer's work:
+
+0d1abb0 Add authentication development note
+
+Then the feature branch was rebased onto main:
+
+git checkout feature/user-authentication
+git rebase main
+
+After the rebase, the feature branch history became linear:
+
+0d1abb0 Add authentication development note
+de372b1 Add authentication module
+c4ddb61 Update dependencies for authentication
+b0cd046 Add authentication middleware
+878f787 Add authentication tests
+
+The commit hashes changed because rebase rewrites commits.
+
+
+4. Comparing rebase and merge
+
+A separate branch was created to demonstrate the merge approach:
+
+git checkout main
+git checkout -b test/merge-approach
+
+A test commit was created:
+
+f1b6341 Add merge demonstration note
+
+The branch was merged into main using:
+
+git checkout main
+git merge --no-ff test/merge-approach -m "Merge merge approach demonstration"
+
+The merge created a separate merge commit:
+
+5d05d09 Merge merge approach demonstration
+
+
+5. Before/after history comparison
+
+After rebase, the feature branch had a linear history:
+
+0d1abb0 Add authentication development note
+de372b1 Add authentication module
+c4ddb61 Update dependencies for authentication
+b0cd046 Add authentication middleware
+878f787 Add authentication tests
+
+The merge approach preserved the branch structure:
+
+5d05d09 Merge merge approach demonstration
+|\
+| f1b6341 Add merge demonstration note
+|/
+0d1abb0 Add authentication development note
+
+
+6. Rebase vs merge
+
+Rebase:
+- Rewrites commit history.
+- Produces a linear history.
+- Useful for keeping a feature branch up to date with main and cleaning up local commits.
+- Changes commit hashes.
+- Should be used carefully with commits that have already been shared with other developers.
+
+Merge:
+- Preserves the original branch history.
+- Creates a merge commit when using --no-ff.
+- Clearly shows where branches were created and merged.
+- Does not rewrite existing commits.
+
+
+7. Challenges encountered
+
+The main challenge was working with the interactive rebase editor.
+
+Git opened Vim for editing the rebase plan. The required commit was changed from:
+
+pick 8158b0d Fix typo in authentication message
+
+to:
+
+fixup 8158b0d Fix typo in authentication message
+
+In Vim, editing was performed using Insert mode with the i key, and the rebase plan was saved with:
+
+Esc
+:wq
+
+Another important observation was that rebase changed the commit hashes because the commits were recreated on top of the updated main branch.
+
+
+8. Conclusion
+
+Interactive rebase was used to clean up the feature branch by combining the typo-fix commit with the previous middleware commit.
+
+The feature branch was then rebased onto the updated main branch, producing a clean linear history.
+
+A separate branch was merged with --no-ff to demonstrate the alternative merge approach. Unlike rebase, merge preserved the branch structure and created an explicit merge commit.
