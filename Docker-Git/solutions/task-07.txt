@@ -1,0 +1,289 @@
+Task 07: Orchestrating Multiple Services with Docker Compose
+
+Project: Docker Compose Node.js API + PostgreSQL + pgAdmin
+Node.js: 24.x
+PostgreSQL: 16
+pgAdmin: dpage/pgadmin4
+
+
+1. Project structure
+
+Docker-Git/task-07/
+├── src/
+│   └── index.js
+├── Dockerfile
+├── .dockerignore
+├── docker-compose.yml
+├── package.json
+└── package-lock.json
+
+
+2. Node.js API
+
+The Express API provides two endpoints:
+
+GET /health
+
+Response:
+{"status":"ok"}
+
+GET /data
+
+Response:
+[{"id":1,"name":"First item"},{"id":2,"name":"Second item"},{"id":3,"name":"Third item"}]
+
+
+3. Dockerfile
+
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY src ./src
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
+
+
+4. Docker Compose configuration
+
+services:
+  api:
+    build: .
+    container_name: task-07-api
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: taskdb
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      - postgres
+    networks:
+      - task-07-network
+
+  postgres:
+    image: postgres:16
+    container_name: task-07-postgres
+    environment:
+      POSTGRES_DB: taskdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - task-07-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: task-07-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - task-07-network
+
+networks:
+  task-07-network:
+
+volumes:
+  postgres-data:
+
+
+5. Docker Compose commands used
+
+Start all services:
+
+docker compose up -d
+
+Check running services:
+
+docker compose ps
+
+View API logs:
+
+docker compose logs api
+
+View PostgreSQL logs:
+
+docker compose logs postgres
+
+View pgAdmin logs:
+
+docker compose logs pgadmin
+
+Stop services gracefully:
+
+docker compose down
+
+
+6. Running services
+
+docker compose ps:
+
+NAME               IMAGE            SERVICE    STATUS
+task-07-api        task-07-api      api        Up
+task-07-pgadmin    dpage/pgadmin4   pgadmin    Up
+task-07-postgres   postgres:16      postgres   Up
+
+Published ports:
+
+API:
+http://localhost:3000
+
+pgAdmin:
+http://localhost:5050
+
+PostgreSQL:
+5432 inside the Docker Compose network.
+
+
+7. API testing
+
+Health endpoint:
+
+curl http://localhost:3000/health
+
+HTTP status:
+200 OK
+
+Response:
+
+{"status":"ok"}
+
+
+Data endpoint:
+
+curl http://localhost:3000/data
+
+HTTP status:
+200 OK
+
+Response:
+
+[
+    {"id":1,"name":"First item"},
+    {"id":2,"name":"Second item"},
+    {"id":3,"name":"Third item"}
+]
+
+
+8. pgAdmin
+
+pgAdmin was opened at:
+
+http://localhost:5050
+
+Login credentials:
+
+Email:
+admin@example.com
+
+Password:
+admin
+
+PostgreSQL server was registered in pgAdmin using:
+
+Host:
+postgres
+
+Port:
+5432
+
+Database:
+taskdb
+
+Username:
+postgres
+
+Password:
+postgres
+
+The database "taskdb" was successfully displayed in pgAdmin.
+
+The hostname "postgres" is the PostgreSQL service name from docker-compose.yml.
+Docker Compose provides DNS-based service discovery between containers on the same network.
+
+
+9. PostgreSQL
+
+PostgreSQL logs confirmed that the database was successfully initialized and became ready to accept connections:
+
+database system is ready to accept connections
+
+PostgreSQL version:
+16.15
+
+
+10. pgAdmin logs
+
+pgAdmin successfully started:
+
+Starting gunicorn 23.0.0
+Listening at: http://[::]:80
+Booting worker with pid: 137
+
+Browser requests to pgAdmin returned HTTP 200 responses.
+
+Warnings shown in the logs were internal warnings from the pgAdmin image and did not prevent the service from working.
+
+
+11. Docker Compose networking
+
+All three services use the same network:
+
+task-07-network
+
+The API, PostgreSQL and pgAdmin containers can communicate using Docker Compose service names.
+
+For example, PostgreSQL is available to other containers as:
+
+postgres:5432
+
+The API does not currently establish a database connection. PostgreSQL connection parameters were configured through environment variables as required by the task.
+
+
+12. PostgreSQL data persistence
+
+A named volume was configured:
+
+postgres-data:/var/lib/postgresql/data
+
+The volume was created by Docker Compose:
+
+task-07_postgres-data
+
+The services were stopped with:
+
+docker compose down
+
+The volume was intentionally preserved because the command was used without the -v option.
+
+
+13. Result
+
+The Docker Compose setup was successfully completed.
+
+The following services were successfully orchestrated:
+
+- Node.js Express API
+- PostgreSQL 16
+- pgAdmin 4
+
+Both API endpoints returned HTTP 200.
+pgAdmin successfully connected to PostgreSQL.
+The taskdb database was visible in pgAdmin.
+Service logs were checked individually.
+All services were stopped gracefully with docker compose down.
+PostgreSQL data volume was preserved.
