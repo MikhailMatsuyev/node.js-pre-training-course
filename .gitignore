@@ -31,4 +31,11 @@ yarn-debug.log*
 yarn-error.log*
 
 # Ignore local env files
-.env.* 
+.env.*
+
+Docker-Git/my-first-repo/
+
+# Nested local Git repositories
+Docker-Git/my-first-repo/
+Docker-Git/company-repo.git/
+Docker-Git/fork-repo.git/
