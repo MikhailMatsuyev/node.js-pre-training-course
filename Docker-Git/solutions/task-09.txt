@@ -1,0 +1,268 @@
+Task 09 Docker Commands and Image Management
+
+In this task, I practiced the main Docker commands for working with images and containers. I also worked with container logs, resource monitoring, Docker volumes, file copying, and Docker networking.
+
+1. Working with images
+
+First, I downloaded the required Docker images:
+
+docker pull nginx:alpine
+docker pull redis:7-alpine
+docker pull node:24-alpine
+
+Then I checked the available images:
+
+docker images
+
+The required nginx, Redis, and Node.js images were available.
+
+I also checked detailed information about the Nginx image:
+
+docker inspect nginx:alpine
+
+This allowed me to see the Nginx version, environment variables, exposed port 80, startup command, and image layers.
+
+Next, I practiced working with image tags:
+
+docker tag nginx:alpine my-nginx:task-09
+
+The same image could now be referenced using both nginx:alpine and my-nginx:task-09. Creating a new tag does not create another physical copy of the image.
+
+I saved the image to a tar file:
+
+docker save -o nginx-task-09.tar my-nginx:task-09
+
+The resulting file was about 26 MB.
+
+Then I removed the custom tag and loaded the image back:
+
+docker rmi my-nginx:task-09
+docker load -i nginx-task-09.tar
+
+After loading, the my-nginx:task-09 tag was available again.
+
+2. Working with containers
+
+I started an Nginx container in detached mode and mapped port 8080 on the host to port 80 in the container:
+
+docker run -d --name task09-nginx -p 8080:80 nginx:alpine
+
+I tested it with:
+
+curl http://localhost:8080
+
+The response was HTTP 200 and the standard Nginx welcome page was returned.
+
+I started Redis with a custom name and restart policy:
+
+docker run -d --name task09-redis --restart unless-stopped redis:7-alpine
+
+Then I checked the running containers:
+
+docker ps
+
+For Node.js, I first created a container without starting it:
+
+docker create --name task09-node node:24-alpine
+
+Then I started it manually:
+
+docker start task09-node
+
+The container exited with code 0 because there was no long-running process inside it.
+
+I checked stopped containers with:
+
+docker ps -a
+
+3. Running commands inside containers
+
+I connected to Redis using redis-cli:
+
+docker exec -it task09-redis redis-cli
+
+Then I ran:
+
+PING
+
+Redis returned:
+
+PONG
+
+I also checked the Nginx configuration from inside the running container:
+
+docker exec task09-nginx nginx -t
+
+The result was:
+
+syntax is ok
+test is successful
+
+4. Copying files
+
+I created a temporary file on the host and copied it into the Nginx container:
+
+docker cp task09-test.txt task09-nginx:/tmp/task09-test.txt
+
+Then I checked the file from inside the container:
+
+docker exec task09-nginx cat /tmp/task09-test.txt
+
+I also tested copying the file in the opposite direction:
+
+docker cp task09-nginx:/tmp/task09-test.txt task09-test-from-container.txt
+
+This confirmed that files can be copied both from the host to a container and from a container back to the host.
+
+5. Monitoring container resources
+
+I checked the current resource usage of the running containers:
+
+docker stats --no-stream
+
+At the time of the check:
+
+Redis:
+CPU  0.60%
+Memory  5.875 MiB
+
+Nginx:
+CPU  0.00%
+Memory  12.29 MiB
+
+The --no-stream option shows one snapshot instead of continuously updating the output.
+
+6. Container logs
+
+I checked the Nginx logs with timestamps:
+
+docker logs -t task09-nginx
+
+The logs showed the Nginx startup process and our HTTP request:
+
+"GET / HTTP/1.1" 200 896
+
+This confirmed that the request to localhost:8080 reached the Nginx container successfully.
+
+7. Inspecting container configuration
+
+I used:
+
+docker inspect task09-nginx
+
+I checked the main container settings.
+
+Nginx was running in the default Docker bridge network.
+
+Port mapping:
+
+8080 on the host → 80 inside the container.
+
+Container IP:
+
+172.17.0.2
+
+The container did not have any mounted volumes:
+
+Mounts: []
+
+No CPU or memory limits were configured for the container.
+
+8. Docker volumes
+
+I created a named Docker volume:
+
+docker volume create task09-data
+
+Then I created a temporary Alpine container and mounted the volume:
+
+docker run -d --name task09-volume-test -v task09-data:/data alpine sleep 3600
+
+I created a file inside the volume:
+
+docker exec task09-volume-test sh -c "echo 'Persistent Docker volume data' > /data/test.txt"
+
+I then removed the first container:
+
+docker rm -f task09-volume-test
+
+After that, I created another container using the same volume:
+
+docker run -d --name task09-volume-test-2 -v task09-data:/data alpine sleep 3600
+
+Finally, I checked the file:
+
+docker exec task09-volume-test-2 cat /data/test.txt
+
+The file and its contents were still there.
+
+This showed that the data was stored in the Docker volume rather than inside the container, so it survived the removal of the original container.
+
+9. Docker networking
+
+I inspected the default bridge network:
+
+docker network inspect bridge
+
+The following containers were connected to it:
+
+task09-nginx:  172.17.0.2
+task09-redis: 172.17.0.3
+task09-volume-test-2: 172.17.0.4
+
+I then tested communication with Redis from another container using its IP address:
+
+docker run --rm --network bridge redis:7-alpine redis-cli -h 172.17.0.3 ping
+
+The result was:
+
+PONG
+
+This confirmed that containers connected to the same Docker bridge network can communicate with each other.
+
+10. Cleanup
+
+After finishing the task, I removed the containers created for this task:
+
+docker rm -f task09-nginx task09-redis task09-volume-test-2 task09-node
+
+I removed the Docker volume:
+
+docker volume rm task09-data
+
+I also removed the temporary files:
+
+task09-test.txt
+task09-test-from-container.txt
+nginx-task-09.tar
+
+11. docker system df
+
+Before the final cleanup:
+
+Images          11        4         1.84GB    1.436GB (78%)
+Containers      4         3         114.7kB   4.096kB (3%)
+Local Volumes   4         2         48.41MB   48.41MB (99%)
+Build Cache     38        0         1.965GB   1.697GB
+
+After the cleanup:
+
+Images          11        0         1.84GB    1.576GB (85%)
+Containers      0         0         0B        0B
+Local Volumes   3         0         48.41MB   48.41MB (100%)
+Build Cache     38        0         1.965GB   1.697GB
+
+I intentionally did not remove the Docker images or build cache because some of them are used by previous tasks in the course.
+
+The Docker commands I found most useful
+
+docker images - list Docker images
+docker inspect - view detailed configuration
+docker ps / docker ps -a - view running and stopped containers
+docker exec - run a command inside a container
+docker cp - copy files between the host and a container
+docker logs - view container logs
+docker stats - monitor container resources
+docker volume - manage persistent storage
+docker network inspect - inspect Docker networks
+docker system df - check Docker disk usage
