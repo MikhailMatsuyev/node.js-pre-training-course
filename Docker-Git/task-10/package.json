@@ -1,0 +1,12 @@
+{
+  "name": "task-10-node-mongo",
+  "version": "1.0.0",
+  "description": "Node.js app for Docker networking and MongoDB",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "mongodb": "^6.20.0"
+  }
+}

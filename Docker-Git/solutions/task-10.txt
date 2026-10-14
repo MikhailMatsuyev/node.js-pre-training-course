@@ -1,0 +1,238 @@
+Task 10 — Advanced Docker Networking and Data Persistence
+
+1. Custom Network Creation and Management
+
+Created a custom bridge network called app-network with a specific subnet:
+
+docker network create --driver bridge --subnet 172.20.0.0/16 app-network
+
+Network configuration:
+
+Name: app-network
+Driver: bridge
+Subnet: 172.20.0.0/16
+Gateway: 172.20.0.1
+
+The network was inspected with:
+
+docker network inspect app-network
+
+Container connectivity was tested by running an Nginx container on app-network and accessing it from another container.
+
+The test was successful and returned the Nginx welcome page.
+
+This showed that containers on the same custom network can communicate using the container name.
+
+
+Final network list:
+
+docker network ls
+
+NETWORK ID     NAME          DRIVER    SCOPE
+4787e2be97d3   app-network   bridge    local
+664353dd5d96   bridge        bridge    local
+7b4e47fd8ea8   host          host      local
+c1ff3ed9229e   network-a     bridge    local
+5e9598b265b8   network-b     bridge    local
+2abff578de27   none          null      local
+
+
+2. Multi-container Communication
+
+Created a named volume for MongoDB:
+
+docker volume create mongodb-data
+
+Started MongoDB on app-network:
+
+docker run -d --name mongodb --network app-network -v mongodb-data:/data/db mongo:8
+
+MongoDB was tested with:
+
+docker exec mongodb mongosh --eval "db.runCommand({ ping: 1 })"
+
+The result was:
+
+{ ok: 1 }
+
+Mongo Express was started on the same network:
+
+docker run -d --name mongo-express --network app-network -p 8081:8081 `
+  -e ME_CONFIG_MONGODB_URL=mongodb://mongodb:27017/ `
+  -e ME_CONFIG_BASICAUTH=false `
+  mongo-express
+
+Mongo Express was available at:
+
+http://localhost:8081
+
+A simple Node.js application was created to connect to MongoDB.
+
+The application used:
+
+mongodb://mongodb:27017
+
+The Node.js application was built as a Docker image and started on app-network.
+
+The connection was successful:
+
+Connected to MongoDB
+MongoDB ping successful
+
+This confirmed that Node.js can connect to MongoDB using the MongoDB container name.
+
+
+3. Volume Types and Data Persistence
+
+Three different volume types were tested.
+
+3.1 Named volume
+
+MongoDB used the named volume:
+
+mongodb-data
+
+A test document was added:
+
+{
+  name: "Mikhail",
+  value: "Docker volume test"
+}
+
+The MongoDB container was removed and then created again with the same volume.
+
+The document was still available.
+
+Persistence was also tested by stopping and starting the MongoDB container:
+
+docker stop mongodb
+docker start mongodb
+
+The document was still available after restarting the container:
+
+{
+  _id: ObjectId('6acf8d8c7382e7ec0510ab12'),
+  name: 'Mikhail',
+  value: 'Docker volume test'
+}
+
+This confirmed that the named volume keeps the database data.
+
+
+3.2 Bind mount
+
+A local folder was created:
+
+task-10\bind-test
+
+A file was created in the Windows folder:
+
+test.txt
+
+The folder was mounted into an Alpine container:
+
+docker run --rm -it -v "${PWD}\task-10\bind-test:/data" alpine sh
+
+Inside the container:
+
+cat /data/test.txt
+
+Output:
+
+Hello from Windows
+
+A file was also created inside the container:
+
+echo "Hello from container" > /data/from-container.txt
+
+After leaving the container, the file was available in the Windows folder.
+
+This showed that a bind mount connects a local folder directly to a folder inside the container.
+
+
+3.3 tmpfs
+
+A tmpfs mount was created:
+
+docker run --rm -it --tmpfs /tmpdata alpine sh
+
+A temporary file was created:
+
+echo "Temporary data" > /tmpdata/test.txt
+
+The file was available while the container was running.
+
+After the container was removed, the file was not available in a new container:
+
+cat: can't open '/tmpdata/test.txt': No such file or directory
+
+This showed that tmpfs is temporary and does not keep data after the container is removed.
+
+
+Final volume list:
+
+docker volume ls
+
+DRIVER    VOLUME NAME
+local     402d10972329096db9ae8c286f8411919fe511b53deb8f4905e88351fc78e889
+local     b3e7976d66b51aa83f08a61967cdf37b42c150148f0ad596687d7c21472ae83a
+local     b0710de2e004e9aaef869bd55ca7cd0c50ef2a6c2b395d3beb1fc714c2ec19a4
+local     ffecaf5a16297a4f3246d553a5bc52588bd504bc5f13ea83a2169c72a7c7ab8d
+local     mongodb-data
+local     task-07_postgres-data
+
+
+4. Network Isolation Testing
+
+Created two separate networks:
+
+docker network create network-a
+docker network create network-b
+
+Started two Nginx containers on different networks:
+
+docker run -d --name isolated-a --network network-a nginx:alpine
+
+docker run -d --name isolated-b --network network-b nginx:alpine
+
+A connection from isolated-a to isolated-b was tested:
+
+docker exec isolated-a wget -qO- http://isolated-b
+
+The request failed:
+
+wget: bad address 'isolated-b'
+
+This confirmed that containers on different networks are isolated by default.
+
+Then isolated-a was connected to network-b:
+
+docker network connect network-b isolated-a
+
+The same connection was tested again:
+
+docker exec isolated-a wget -qO- http://isolated-b
+
+This time the Nginx welcome page was returned successfully.
+
+This showed that one container can be connected to multiple Docker networks.
+
+
+Network topology
+
+app-network
+├── mongodb
+├── mongo-express
+└── Node.js app
+
+network-a
+└── isolated-a
+
+network-b
+└── isolated-b
+
+After connecting isolated-a to network-b:
+
+network-a ─── isolated-a ─── network-b
+                                │
+                                └── isolated-b
